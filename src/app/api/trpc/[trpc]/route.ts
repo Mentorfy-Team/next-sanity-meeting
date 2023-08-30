@@ -27,12 +27,4 @@ const handler = (request: Request) => {
   });
 };
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: "4mb", // Set desired value here
-    },
-  },
-};
-
 export { handler as GET, handler as POST };
