@@ -5,31 +5,34 @@ export class BigBlueButtonAPI {
   private baseURL = "https://meet.mentorfy.io/bigbluebutton/api/";
 
   private generateChecksum(action: string, params: Record<string, any>): string {
-    const secret = "IB1P1PTq3lxeY99WSMSkXbUVEIZwjMpiXHBBIjA"; // Sua chave secreta
-    const paramString = Object.keys(params)
-      .sort()
-      .map((key) => `${key}=${params[key]}`)
-      .join("&");
+    const secret = "IB1P1PTq3lxeY99WSMSkXbUVEIZwjMpiXHBBIjA"; // Your shared secret
+
+    // Remove the checksum field if present, as it's what we're trying to calculate
+    delete params['checksum'];
   
+    // Use URLSearchParams for URL encoding
+    const paramString = new URLSearchParams(params).toString();
+    
+    // Create the raw string by prepending the action and appending the secret
     const rawString = `${action}${paramString}${secret}`;
-  
-    // Usando SHA-1 para gerar o checksum
-    const hash = crypto.createHash("sha1");
+    // Generate the SHA-1 checksum
+    const hash = crypto.createHash('sha1');
     hash.update(rawString);
-    return hash.digest("hex");
+  
+    return hash.digest('hex');
   }
 
-  async create(meetingID: string) {
+  async createRoom(meetingID: string, moderatorPW?: string) {
     const params = {
-      allowStartStopRecording: true,
-      attendeePW: "ap",
+      allowStartStopRecording: false,
       autoStartRecording: false,
-      meetingID,
-      moderatorPW: "mp",
-      name: meetingID,
+      meetingID: Date.now().toString(),
+      name: "Teste",
       record: false,
       voiceBridge: 77458,
-      welcome: "<br>Welcome to <b>%%CONFNAME%%</b>!",
+      attendeePW: "ap",
+      moderatorPW: "mp",
+      // welcome: "<br>Welcome to <b>%%CONFNAME%%</b>!",
       checksum: '',
     };
 
@@ -43,11 +46,11 @@ export class BigBlueButtonAPI {
     const params = {
       fullName,
       meetingID,
-      password: "mp",
-      redirect: true,
+      password: 'mp',
+      redirect: false,
       checksum: '',
     };
-    const checksum = this.generateChecksum("create", params);
+    const checksum = this.generateChecksum("join", params);
     params['checksum'] = checksum;
 
     return await axios.get(`${this.baseURL}join`, { params });
@@ -58,12 +61,13 @@ export class BigBlueButtonAPI {
       fullName,
       meetingID,
       password: "ap",
-      redirect: true,
+      redirect: false,
       checksum: '',
     };
-    const checksum = this.generateChecksum("create", params);
+    const checksum = this.generateChecksum("join", params);
     params['checksum'] = checksum;
-
+    console.log('params', params)
+    
     return await axios.get(`${this.baseURL}join`, { params });
   }
 
