@@ -16,7 +16,6 @@ import {
 } from "@radix-ui/react-icons"
 import { trpc } from "@/utils/trpc";
 import { useEffect, useRef, useState } from "react";
-import { useCookies } from 'react-cookie';
 
 type Props = {
   params: { meetingID: string }
