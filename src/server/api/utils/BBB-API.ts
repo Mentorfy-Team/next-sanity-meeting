@@ -27,9 +27,8 @@ export class BigBlueButtonAPI {
       allowStartStopRecording: false,
       autoStartRecording: false,
       meetingID: Date.now().toString(),
-      name: "Teste",
+      name: Date.now().toString(),
       record: false,
-      voiceBridge: 77458,
       attendeePW: "ap",
       moderatorPW: "mp",
       // welcome: "<br>Welcome to <b>%%CONFNAME%%</b>!",
@@ -66,7 +65,6 @@ export class BigBlueButtonAPI {
     };
     const checksum = this.generateChecksum("join", params);
     params['checksum'] = checksum;
-    console.log('params', params)
     
     return await axios.get(`${this.baseURL}join`, { params });
   }

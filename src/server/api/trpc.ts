@@ -19,6 +19,7 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 type CreateContextOptions = {
   req: NextApiRequest;
   res: NextApiResponse;
+  resHeaders: IncomingHttpHeaders;
 };
 
 /**
@@ -35,11 +36,13 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
   interface IResponse {
     req?: typeof opts.req;
     res?: typeof opts.res;
+    resHeaders: typeof opts.resHeaders;
   }
 
   return {
     req: opts.req,
     res: opts.res,
+    resHeaders: opts.resHeaders,
   } as IResponse;
 };
 
@@ -50,11 +53,10 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const req = opts.req as NextApiRequest;
-
   return createInnerTRPCContext({
     req: opts.req,
     res: opts.res,
+    resHeaders: opts.req.headers,
   });
 };
 
@@ -70,6 +72,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { type OpenApiMeta } from "trpc-openapi";
 import { type NextApiRequest, type NextApiResponse } from "next/types";
+import { IncomingHttpHeaders } from "http";
 
 const t = initTRPC
   .meta<OpenApiMeta>()

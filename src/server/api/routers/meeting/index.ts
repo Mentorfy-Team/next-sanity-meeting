@@ -6,6 +6,7 @@ import xml2js from "xml2js";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, publicProcedure } from "../../trpc";
 import { BigBlueButtonAPI } from "../../utils/BBB-API";
+import { saveSetCookies } from "./functions";
 
 export const meetingRouter = createTRPCRouter({
   createRoom: handleCreateRoom(),
@@ -16,7 +17,10 @@ export const meetingRouter = createTRPCRouter({
 function handleJoinAsModerator() {
   return publicProcedure
     .meta({ /* 👉 */ openapi: { method: "GET", path: "/room/:meetingID" } })
-    .input(z.object({ meetingID: z.string() }))
+    .input(z.object({ 
+      meetingID: z.string(),
+      name: z.string(),
+    }))
     .output(z.object({
       returncode: z.string(),
       messageKey: z.string(),
@@ -27,15 +31,15 @@ function handleJoinAsModerator() {
       session_token: z.string(),
       guestStatus: z.string(),
       url: z.string(),
+      cookie: z.any(),
     }))
-    .mutation(async ({ input }) => {
-      const { meetingID } = input;
+    .mutation(async ({ input, ctx }) => {
+      const { meetingID, name } = input;
 
       // use BigBlueButtonAPI to create a room
       const bbb = new BigBlueButtonAPI();
 
-      const { data } = await bbb.joinAsModerator("Teste", meetingID);
-      console.log('data', data)
+      const { data, headers } = await bbb.joinAsModerator(name, meetingID);
 
       if(data?.response?.message){
         throw new TRPCError({
@@ -44,15 +48,20 @@ function handleJoinAsModerator() {
         });
       }
       const {response} = (await convertXmlToObject(data)) as {response: MeetingJoin};
-      console.log('response', response)
-      return response;
+      
+      saveSetCookies(headers);
+
+      return {...response, cookie: headers["set-cookie"]};
     });
 }
 
 function handleJoinAsAttendee() {
   return publicProcedure
     .meta({ /* 👉 */ openapi: { method: "GET", path: "/room/:meetingID" } })
-    .input(z.object({ meetingID: z.string() }))
+    .input(z.object({ 
+      meetingID: z.string(),
+      name: z.string(),
+    }))
     .output(z.object({
       returncode: z.string(),
       messageKey: z.string(),
@@ -63,16 +72,15 @@ function handleJoinAsAttendee() {
       session_token: z.string(),
       guestStatus: z.string(),
       url: z.string(),
+      cookie: z.any(),
     }))
-    .mutation(async ({ input }) => {
-      const { meetingID } = input;
+    .mutation(async ({ input, ctx }) => {
+      const { meetingID, name } = input;
 
       // use BigBlueButtonAPI to create a room
       const bbb = new BigBlueButtonAPI();
 
-      const { data, request } = await bbb.joinAsAttendee("Teste", meetingID);
-      console.log('data', data);
-      console.log('data', request.path);
+      const { data, headers } = await bbb.joinAsAttendee(name, meetingID);
 
       if(data?.response?.message){
         throw new TRPCError({
@@ -81,8 +89,10 @@ function handleJoinAsAttendee() {
         });
       }
       const {response} = (await convertXmlToObject(data)) as {response: MeetingJoin};
-      console.log('response', response)
-      return response;
+      
+      saveSetCookies(headers);
+
+      return {...response};
     });
 }
 
@@ -90,7 +100,7 @@ function handleCreateRoom() {
   return publicProcedure
     .meta({ /* 👉 */ openapi: { method: "GET", path: "/room" } })
     .input(z.object({
-      name: z.string(),
+      meetingID: z.string(),
       owner: z.string().optional(),
     }))
     .output(
@@ -113,16 +123,12 @@ function handleCreateRoom() {
       })
     )
     .mutation(async ({ input }) => {
-      const { name } = input;
+      const { meetingID } = input;
 
       // use BigBlueButtonAPI to create a room
       const bbb = new BigBlueButtonAPI();
 
-      const meetingID = format(new Date(), "yyyyMMddHHmmss", {
-        locale: ptBR,
-      });
-
-      const { data } = await bbb.createRoom(name);
+      const { data } = await bbb.createRoom(meetingID);
       
       if(data?.response?.message){
         throw new TRPCError({

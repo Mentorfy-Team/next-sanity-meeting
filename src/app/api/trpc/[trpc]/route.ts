@@ -12,9 +12,9 @@ const handler = (request: Request) => {
     req: request,
     router: appRouter,
     createContext: function (
-      opts: FetchCreateContextFnOptions,
+      { resHeaders, req }: FetchCreateContextFnOptions,
     ): object | Promise<object> {
-      return {};
+      return { resHeaders, req };
     },
     onError:
       env.NODE_ENV === "development"
