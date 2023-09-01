@@ -47,8 +47,6 @@ export default function Project({ params: { meetingID } }: Props) {
 
   const videoRef = useRef(null);
 
-  const [cookies, setCookie] = useCookies();
-
   useEffect(() => {
     // Acessar a câmera e o microfone e armazená-los no estado
     navigator.mediaDevices
