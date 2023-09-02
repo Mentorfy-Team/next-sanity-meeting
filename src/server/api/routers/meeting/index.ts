@@ -2,22 +2,27 @@ import { z } from "zod";
 import { format, startOfWeek, endOfWeek, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import xml2js from "xml2js";
+import { cookies } from 'next/headers'
 
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, publicProcedure } from "../../trpc";
 import { BigBlueButtonAPI } from "../../utils/BBB-API";
 import { saveSetCookies } from "./functions";
+import { SupabaseAdmin } from "../../utils/supabase";
+import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
+import { Database } from "@/@types/supabase/v2.types";
 
 export const meetingRouter = createTRPCRouter({
   createRoom: handleCreateRoom(),
   joinAsModerator: handleJoinAsModerator(),
   joinAsAttendee: handleJoinAsAttendee(),
+  getRoom: handleGetRoom(),
 });
 
 function handleJoinAsModerator() {
   return publicProcedure
-    .meta({ /* 👉 */ openapi: { method: "GET", path: "/room/:meetingID" } })
-    .input(z.object({ 
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/join-room-mod" } })
+    .input(z.object({
       meetingID: z.string(),
       name: z.string(),
     }))
@@ -41,26 +46,27 @@ function handleJoinAsModerator() {
 
       const { data, headers } = await bbb.joinAsModerator(name, meetingID);
 
-      if(data?.response?.message){
+      if (data?.response?.message) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: data.response.message,
         });
       }
-      const {response} = (await convertXmlToObject(data)) as {response: MeetingJoin};
-      
+      const { response } = (await convertXmlToObject(data)) as { response: MeetingJoin };
+
       saveSetCookies(headers);
 
-      return {...response, cookie: headers["set-cookie"]};
+      return { ...response, cookie: headers["set-cookie"] };
     });
 }
 
 function handleJoinAsAttendee() {
   return publicProcedure
-    .meta({ /* 👉 */ openapi: { method: "GET", path: "/room/:meetingID" } })
-    .input(z.object({ 
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/join-room" } })
+    .input(z.object({
       meetingID: z.string(),
       name: z.string(),
+      password: z.string().optional(),
     }))
     .output(z.object({
       returncode: z.string(),
@@ -75,33 +81,68 @@ function handleJoinAsAttendee() {
       cookie: z.any(),
     }))
     .mutation(async ({ input, ctx }) => {
-      const { meetingID, name } = input;
+      const { meetingID, name, password } = input;
 
       // use BigBlueButtonAPI to create a room
       const bbb = new BigBlueButtonAPI();
 
-      const { data, headers } = await bbb.joinAsAttendee(name, meetingID);
+      const supabase = createServerActionClient<Database>({ cookies });
 
-      if(data?.response?.message){
+      const { data: userResponse } = await supabase.auth.getUser();
+
+      const { data: meeting } = await supabase.from("meeting")
+        .select("*")
+        .or(`id.eq.${meetingID},friendly_id.eq.${meetingID}`)
+        .single();
+
+      if (!meeting) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Sala não encontrada",
+        });
+      }
+
+      const { data: meetingResponse } = await bbb.createRoom({
+        meetingID: meeting.id,
+        guestPolicy: "ALWAYS_ACCEPT",
+        roomName: meeting.room_name!,
+        ...meeting.configs,
+      });
+
+      if (meetingResponse?.response?.message) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: meetingResponse.response.message,
+        });
+      }
+      const { response: createdMeeting } = (await convertXmlToObject(meetingResponse)) as { response: MeetingCreated };
+
+      const isMod = userResponse?.user?.id === meeting?.owner_id;
+
+      const { data, headers } = await bbb.joinAsAttendee(name, createdMeeting.meetingID, password, isMod);
+
+      if (data?.response?.message) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: data.response.message,
         });
       }
-      const {response} = (await convertXmlToObject(data)) as {response: MeetingJoin};
-      
+      const { response } = (await convertXmlToObject(data)) as { response: MeetingJoin };
+
       saveSetCookies(headers);
 
-      return {...response};
+      return { ...response };
     });
 }
 
 function handleCreateRoom() {
   return publicProcedure
-    .meta({ /* 👉 */ openapi: { method: "GET", path: "/room" } })
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/create-room" } })
     .input(z.object({
       meetingID: z.string(),
       owner: z.string().optional(),
+      roomName: z.string().optional(),
+      guestPolicy: z.string().optional(),
     }))
     .output(
       z.object({
@@ -123,25 +164,78 @@ function handleCreateRoom() {
       })
     )
     .mutation(async ({ input }) => {
-      const { meetingID } = input;
+      const { meetingID, guestPolicy, owner, roomName } = input;
 
       // use BigBlueButtonAPI to create a room
       const bbb = new BigBlueButtonAPI();
 
-      const { data } = await bbb.createRoom(meetingID);
-      
-      if(data?.response?.message){
+      const { data } = await bbb.createRoom({
+        meetingID, guestPolicy, roomName: roomName || 'Sala de Reunião', moderatorPW: "mp", owner
+      });
+
+      if (data?.response?.message) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: data.response.message,
         });
       }
-      const {response} = (await convertXmlToObject(data)) as {response: MeetingCreated};
+      const { response } = (await convertXmlToObject(data)) as { response: MeetingCreated };
       console.log(response);
 
       return {
         ...response,
       };
+    });
+}
+
+function handleGetRoom() {
+  return publicProcedure
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/room/:meetingID" } })
+    .input(z.object({
+      meetingID: z.string(),
+    }))
+    .output(
+      z.object({
+        appointment_date: z.string().nullable().refine(date => !isNaN(Date.parse(date)), {
+          message: 'Data inválida'
+        }),
+        appointment_finished_at: z.null().optional(),
+        date_created: z.string().refine(date => !isNaN(Date.parse(date)), {
+          message: 'Data inválida'
+        }),
+        date_updated: z.string().refine(date => !isNaN(Date.parse(date)), {
+          message: 'Data inválida'
+        }),
+        friendly_id: z.string(),
+        id: z.string().uuid(),
+        invite_url: z.string().url().nullable().optional(),
+        owner_id: z.string().uuid(),
+        recording_url: z.string().url().nullable().optional(),
+        room_name: z.string(),
+        sort: z.null().optional(),
+        status: z.any(),
+        type: z.string(),
+        url: z.string().url()
+      })
+    )
+    .query(async ({ input: { meetingID } }) => {
+      const supabase = SupabaseAdmin();
+
+      const { data, error } = await supabase
+        .from("meeting")
+        .select("*")
+        .eq("id", meetingID)
+        .single();
+
+
+      if (error) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: error.message,
+        });
+      }
+
+      return data;
     });
 }
 

@@ -9,28 +9,65 @@ export class BigBlueButtonAPI {
 
     // Remove the checksum field if present, as it's what we're trying to calculate
     delete params['checksum'];
-  
+
     // Use URLSearchParams for URL encoding
     const paramString = new URLSearchParams(params).toString();
-    
+
     // Create the raw string by prepending the action and appending the secret
     const rawString = `${action}${paramString}${secret}`;
     // Generate the SHA-1 checksum
     const hash = crypto.createHash('sha1');
     hash.update(rawString);
-  
+
     return hash.digest('hex');
   }
 
-  async createRoom(meetingID: string, moderatorPW?: string) {
+  async createRoom({
+    meetingID,
+    moderatorPW,
+    guestPolicy,
+    roomName,
+    record,
+    autoStartRecording,
+    maxParticipants,
+    logoutURL,
+    duration,
+    moderatorOnlyMessage,
+    logo,
+    bannerText,
+    muteOnStart,
+    learningDashboardEnabled,
+    allowStartStopRecording,
+    webcamsOnlyForModerator,
+  }: {
+    meetingID: string, moderatorPW?: string, guestPolicy?: string,
+    roomName?: string, owner?: string
+    record?: boolean, autoStartRecording?: boolean,
+    maxParticipants?: number, logoutURL?: string,
+    duration?: number, moderatorOnlyMessage?: string,
+    logo?: string, bannerText?: string,
+    muteOnStart?: boolean, learningDashboardEnabled?: boolean,
+    allowStartStopRecording?: boolean, webcamsOnlyForModerator?: boolean,
+  }) {
     const params = {
-      allowStartStopRecording: false,
-      autoStartRecording: false,
-      meetingID: Date.now().toString(),
-      name: Date.now().toString(),
-      record: false,
+      duration: duration || 0,
+      learningDashboardEnabled: learningDashboardEnabled || true,
+      allowStartStopRecording: allowStartStopRecording || true,
+      autoStartRecording: autoStartRecording || false,
+      meetingID: meetingID,
+      name: roomName,
+      record: record || false,
       attendeePW: "ap",
-      moderatorPW: "mp",
+      moderatorPW: moderatorPW || "mp",
+      guestPolicy: guestPolicy || "ALWAYS_ACCEPT",
+      learningDashboardCleanupDelayInMinutes: 60 * 24,
+      allowModsToEjectCameras: true,
+      allowRequestsWithoutSession: true,
+      userCameraCap: 1,
+      meetingCameraCap: 30,
+      maxParticipants: maxParticipants || 10000,
+      webcamsOnlyForModerator: webcamsOnlyForModerator || false,
+      logoutURL: logoutURL || "https://meet.mentorfy.io",
       // welcome: "<br>Welcome to <b>%%CONFNAME%%</b>!",
       checksum: '',
     };
@@ -55,17 +92,19 @@ export class BigBlueButtonAPI {
     return await axios.get(`${this.baseURL}join`, { params });
   }
 
-  async joinAsAttendee(fullName: string, meetingID: string) {
+  async joinAsAttendee(fullName: string, meetingID: string, password?: string, isMod = false) {
     const params = {
       fullName,
       meetingID,
-      password: "ap",
+      role: isMod ? "MODERATOR" : "VIEWER",
+      password: password || "ap",
       redirect: false,
+      guest: true,
       checksum: '',
     };
     const checksum = this.generateChecksum("join", params);
     params['checksum'] = checksum;
-    
+
     return await axios.get(`${this.baseURL}join`, { params });
   }
 

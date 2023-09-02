@@ -56,11 +56,11 @@ const components: { title: string; href: string; description: string }[] = [
   },
 ];
 
-export async function NavigationMenuDemo() {
-  const pages = await getPages();
+export async function NavigationMenuDemo({ refreshToken }: { refreshToken?: string }) {
+  //const pages = await getPages();
 
   return (
-    <div className="flex max-h-[60px] py-2">
+    <div className="flex max-h-[60px] p-3">
       <Image
         src={"/logo.png"}
         alt="Logo mentorfy meeting"
@@ -71,7 +71,7 @@ export async function NavigationMenuDemo() {
       <div className="flex-1 flex justify-center">
         <NavigationMenu>
           <NavigationMenuList>
-            <NavigationMenuItem>
+            {/* <NavigationMenuItem>
               <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
@@ -122,18 +122,18 @@ export async function NavigationMenuDemo() {
                   ))}
                 </ul>
               </NavigationMenuContent>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/docs" legacyBehavior passHref>
+            </NavigationMenuItem> */}
+            {/* <NavigationMenuItem>
+              <Link href="/" legacyBehavior passHref>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  Documentation
+                  Home
                 </NavigationMenuLink>
               </Link>
-            </NavigationMenuItem>
+            </NavigationMenuItem> */}
           </NavigationMenuList>
         </NavigationMenu>
       </div>
-      <AvatarMenu />
+      <AvatarMenu refreshToken={refreshToken} />
     </div>
   );
 }
