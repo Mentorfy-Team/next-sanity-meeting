@@ -22,7 +22,7 @@ export class BigBlueButtonAPI {
     return hash.digest('hex');
   }
 
-  async createRoom(meetingID: string, moderatorPW?: string) {
+  async createRoom(meetingID: string, moderatorPW?: string, guestPolicy?: string) {
     const params = {
       allowStartStopRecording: false,
       autoStartRecording: false,
@@ -31,6 +31,7 @@ export class BigBlueButtonAPI {
       record: false,
       attendeePW: "ap",
       moderatorPW: "mp",
+      guestPolicy: guestPolicy || "ALWAYS_ACCEPT",
       // welcome: "<br>Welcome to <b>%%CONFNAME%%</b>!",
       checksum: '',
     };
@@ -55,12 +56,13 @@ export class BigBlueButtonAPI {
     return await axios.get(`${this.baseURL}join`, { params });
   }
 
-  async joinAsAttendee(fullName: string, meetingID: string) {
+  async joinAsAttendee(fullName: string, meetingID: string, password?: string) {
     const params = {
       fullName,
       meetingID,
-      password: "ap",
+      password: password || "ap",
       redirect: false,
+      guest: true,
       checksum: '',
     };
     const checksum = this.generateChecksum("join", params);

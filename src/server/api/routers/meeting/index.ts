@@ -63,6 +63,7 @@ function handleJoinAsAttendee() {
     .input(z.object({ 
       meetingID: z.string(),
       name: z.string(),
+      password: z.string().optional(),
     }))
     .output(z.object({
       returncode: z.string(),
@@ -77,12 +78,12 @@ function handleJoinAsAttendee() {
       cookie: z.any(),
     }))
     .mutation(async ({ input, ctx }) => {
-      const { meetingID, name } = input;
+      const { meetingID, name, password } = input;
 
       // use BigBlueButtonAPI to create a room
       const bbb = new BigBlueButtonAPI();
 
-      const { data, headers } = await bbb.joinAsAttendee(name, meetingID);
+      const { data, headers } = await bbb.joinAsAttendee(name, meetingID, password);
 
       if(data?.response?.message){
         throw new TRPCError({
@@ -104,6 +105,7 @@ function handleCreateRoom() {
     .input(z.object({
       meetingID: z.string(),
       owner: z.string().optional(),
+      guestPolicy: z.string().optional(),
     }))
     .output(
       z.object({
@@ -125,12 +127,12 @@ function handleCreateRoom() {
       })
     )
     .mutation(async ({ input }) => {
-      const { meetingID } = input;
+      const { meetingID, guestPolicy, owner } = input;
 
       // use BigBlueButtonAPI to create a room
       const bbb = new BigBlueButtonAPI();
 
-      const { data } = await bbb.createRoom(meetingID);
+      const { data } = await bbb.createRoom(meetingID, undefined, guestPolicy);
       
       if(data?.response?.message){
         throw new TRPCError({
