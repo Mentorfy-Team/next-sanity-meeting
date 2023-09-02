@@ -56,8 +56,8 @@ const components: { title: string; href: string; description: string }[] = [
   },
 ];
 
-export async function NavigationMenuDemo() {
-  const pages = await getPages();
+export async function NavigationMenuDemo({ refreshToken }: { refreshToken?: string }) {
+  //const pages = await getPages();
 
   return (
     <div className="flex max-h-[60px] p-3">
@@ -133,7 +133,7 @@ export async function NavigationMenuDemo() {
           </NavigationMenuList>
         </NavigationMenu>
       </div>
-      {/* <AvatarMenu /> */}
+      <AvatarMenu refreshToken={refreshToken} />
     </div>
   );
 }

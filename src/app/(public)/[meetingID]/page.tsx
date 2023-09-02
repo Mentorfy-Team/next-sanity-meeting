@@ -27,18 +27,21 @@ import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 type Props = {
-  params: { meetingID: string }
+  params: {
+    meetingID: string,
+    refreshToken: string,
+  }
 }
 
 
 export default function Project({ params: { meetingID } }: Props) {
-
+  const supabase = createClientComponentClient();
   const [usePassword, setUsePassword] = useState(false);
 
   const { mutateAsync: joinAsAttendee } = trpc.meeting.joinAsAttendee.useMutation();
-  const { mutateAsync: startRoom } = trpc.meeting.createRoom.useMutation();
   const { data: room, isLoading } = trpc.meeting.getRoom.useQuery({ meetingID });
 
   const [mediaStream, setMediaStream] = useState(null);
@@ -155,8 +158,8 @@ export default function Project({ params: { meetingID } }: Props) {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const startedRoom = await startRoom({ meetingID: values.name, guestPolicy: 'ASK_MODERATOR' });
-    const info = await joinAsAttendee({ meetingID: startedRoom.meetingID, name: values.name, password: values.password });
+    //const startedRoom = await startRoom({ meetingID, guestPolicy: 'ASK_MODERATOR' });
+    const info = await joinAsAttendee({ meetingID, name: values.name, password: values.password });
 
     window.open(info.url, '_blank');
   }
@@ -166,7 +169,7 @@ export default function Project({ params: { meetingID } }: Props) {
 
     const appointmentDate = new Date(room?.appointment_date);
     const now = new Date();
-    return appointmentDate < now;
+    return !(appointmentDate < now);
   };
 
   const hasMeetingStarted = () => {

@@ -2,12 +2,15 @@ import { z } from "zod";
 import { format, startOfWeek, endOfWeek, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import xml2js from "xml2js";
+import { cookies } from 'next/headers'
 
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, publicProcedure } from "../../trpc";
 import { BigBlueButtonAPI } from "../../utils/BBB-API";
 import { saveSetCookies } from "./functions";
 import { SupabaseAdmin } from "../../utils/supabase";
+import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
+import { Database } from "@/@types/supabase/v2.types";
 
 export const meetingRouter = createTRPCRouter({
   createRoom: handleCreateRoom(),
@@ -19,7 +22,7 @@ export const meetingRouter = createTRPCRouter({
 function handleJoinAsModerator() {
   return publicProcedure
     .meta({ /* 👉 */ openapi: { method: "GET", path: "/join-room-mod" } })
-    .input(z.object({ 
+    .input(z.object({
       meetingID: z.string(),
       name: z.string(),
     }))
@@ -43,24 +46,24 @@ function handleJoinAsModerator() {
 
       const { data, headers } = await bbb.joinAsModerator(name, meetingID);
 
-      if(data?.response?.message){
+      if (data?.response?.message) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: data.response.message,
         });
       }
-      const {response} = (await convertXmlToObject(data)) as {response: MeetingJoin};
-      
+      const { response } = (await convertXmlToObject(data)) as { response: MeetingJoin };
+
       saveSetCookies(headers);
 
-      return {...response, cookie: headers["set-cookie"]};
+      return { ...response, cookie: headers["set-cookie"] };
     });
 }
 
 function handleJoinAsAttendee() {
   return publicProcedure
     .meta({ /* 👉 */ openapi: { method: "GET", path: "/join-room" } })
-    .input(z.object({ 
+    .input(z.object({
       meetingID: z.string(),
       name: z.string(),
       password: z.string().optional(),
@@ -83,19 +86,52 @@ function handleJoinAsAttendee() {
       // use BigBlueButtonAPI to create a room
       const bbb = new BigBlueButtonAPI();
 
-      const { data, headers } = await bbb.joinAsAttendee(name, meetingID, password);
+      const supabase = createServerActionClient<Database>({ cookies });
 
-      if(data?.response?.message){
+      const { data: userResponse } = await supabase.auth.getUser();
+
+      const { data: meeting } = await supabase.from("meeting")
+        .select("*")
+        .or(`id.eq.${meetingID},friendly_id.eq.${meetingID}`)
+        .single();
+
+      if (!meeting) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Sala não encontrada",
+        });
+      }
+
+      const { data: meetingResponse } = await bbb.createRoom({
+        meetingID: meeting.id,
+        guestPolicy: "ALWAYS_ACCEPT",
+        roomName: meeting.room_name!,
+        ...meeting.configs,
+      });
+
+      if (meetingResponse?.response?.message) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: meetingResponse.response.message,
+        });
+      }
+      const { response: createdMeeting } = (await convertXmlToObject(meetingResponse)) as { response: MeetingCreated };
+
+      const isMod = userResponse?.user?.id === meeting?.owner_id;
+
+      const { data, headers } = await bbb.joinAsAttendee(name, createdMeeting.meetingID, password, isMod);
+
+      if (data?.response?.message) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: data.response.message,
         });
       }
-      const {response} = (await convertXmlToObject(data)) as {response: MeetingJoin};
-      
+      const { response } = (await convertXmlToObject(data)) as { response: MeetingJoin };
+
       saveSetCookies(headers);
 
-      return {...response};
+      return { ...response };
     });
 }
 
@@ -105,6 +141,7 @@ function handleCreateRoom() {
     .input(z.object({
       meetingID: z.string(),
       owner: z.string().optional(),
+      roomName: z.string().optional(),
       guestPolicy: z.string().optional(),
     }))
     .output(
@@ -127,20 +164,22 @@ function handleCreateRoom() {
       })
     )
     .mutation(async ({ input }) => {
-      const { meetingID, guestPolicy, owner } = input;
+      const { meetingID, guestPolicy, owner, roomName } = input;
 
       // use BigBlueButtonAPI to create a room
       const bbb = new BigBlueButtonAPI();
 
-      const { data } = await bbb.createRoom(meetingID, undefined, guestPolicy);
-      
-      if(data?.response?.message){
+      const { data } = await bbb.createRoom({
+        meetingID, guestPolicy, roomName: roomName || 'Sala de Reunião', moderatorPW: "mp", owner
+      });
+
+      if (data?.response?.message) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: data.response.message,
         });
       }
-      const {response} = (await convertXmlToObject(data)) as {response: MeetingCreated};
+      const { response } = (await convertXmlToObject(data)) as { response: MeetingCreated };
       console.log(response);
 
       return {
