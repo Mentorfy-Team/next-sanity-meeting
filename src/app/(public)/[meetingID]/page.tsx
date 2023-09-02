@@ -16,6 +16,10 @@ import {
 } from "@radix-ui/react-icons"
 import { trpc } from "@/utils/trpc";
 import { useEffect, useRef, useState } from "react";
+import { MicrophoneOnIcon } from "@/components/icons/microphone"
+import { CameraOnIcon } from "@/components/icons/camera"
+import clsx from "clsx"
+import { cn } from "@/lib/utils"
 
 type Props = {
   params: { meetingID: string }
@@ -28,6 +32,7 @@ export default function Project({ params: { meetingID } }: Props) {
   // const [rooms, setRooms] = useState<MeetingCreated[]>([]);
   const { mutateAsync: joinAsAttendee } = trpc.meeting.joinAsAttendee.useMutation();
   const { mutateAsync: startRoom } = trpc.meeting.createRoom.useMutation();
+  const { data: room } = trpc.meeting.getRoom.useQuery({ meetingID });
 
   // function onRoomCreated(values: any) {
   //   console.log(values);
@@ -40,6 +45,8 @@ export default function Project({ params: { meetingID } }: Props) {
   // }
   const [mediaStream, setMediaStream] = useState(null);
   const [name, setName] = useState('');
+  const [microphoneEnabled, setMicrophoneEnabled] = useState(true);
+  const [cameraEnabled, setCameraEnabled] = useState(true);
 
   const [audioDevices, setAudioDevices] = useState([]);
   const [videoDevices, setVideoDevices] = useState([]);
@@ -119,11 +126,13 @@ export default function Project({ params: { meetingID } }: Props) {
                 playsInline
               ></video>
               <div className="absolute bottom-4 right-4 flex gap-2">
-                <button className="bg-blue-500 p-4 rounded-full">
+                <button data-active={microphoneEnabled} className={cn("p-2 rounded-full data-[active=true]:bg-green-500 bg-red-400")} onClick={() => setMicrophoneEnabled(!microphoneEnabled)}>
                   {/* Ícone do microfone */}
+                  <MicrophoneOnIcon />
                 </button>
-                <button className="bg-red-500 p-4 rounded-full">
+                <button data-active={cameraEnabled} className={cn("p-2 rounded-full data-[active=true]:bg-green-500 bg-red-400")} onClick={() => setCameraEnabled(!cameraEnabled)}>
                   {/* Ícone da câmera */}
+                  <CameraOnIcon />
                 </button>
               </div>
             </div>
@@ -182,7 +191,7 @@ export default function Project({ params: { meetingID } }: Props) {
           </div>
           <div className="flex flex-col w-[300px] gap-4 justify-center">
             <div>
-              <h2 className="text-2xl mb-2 text-center">Reunião XPTO 2023</h2>
+              <h2 className="text-2xl mb-2 text-center">{room?.room_name}</h2>
               {/* Numero de participantes */}
               <p className="text-sm text-center">A reunião ainda não começou.</p>
             </div>

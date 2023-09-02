@@ -7,16 +7,18 @@ import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, publicProcedure } from "../../trpc";
 import { BigBlueButtonAPI } from "../../utils/BBB-API";
 import { saveSetCookies } from "./functions";
+import { SupabaseAdmin } from "../../utils/supabase";
 
 export const meetingRouter = createTRPCRouter({
   createRoom: handleCreateRoom(),
   joinAsModerator: handleJoinAsModerator(),
   joinAsAttendee: handleJoinAsAttendee(),
+  getRoom: handleGetRoom(),
 });
 
 function handleJoinAsModerator() {
   return publicProcedure
-    .meta({ /* 👉 */ openapi: { method: "GET", path: "/room/:meetingID" } })
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/join-room-mod" } })
     .input(z.object({ 
       meetingID: z.string(),
       name: z.string(),
@@ -57,7 +59,7 @@ function handleJoinAsModerator() {
 
 function handleJoinAsAttendee() {
   return publicProcedure
-    .meta({ /* 👉 */ openapi: { method: "GET", path: "/room/:meetingID" } })
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/join-room" } })
     .input(z.object({ 
       meetingID: z.string(),
       name: z.string(),
@@ -98,7 +100,7 @@ function handleJoinAsAttendee() {
 
 function handleCreateRoom() {
   return publicProcedure
-    .meta({ /* 👉 */ openapi: { method: "GET", path: "/room" } })
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/create-room" } })
     .input(z.object({
       meetingID: z.string(),
       owner: z.string().optional(),
@@ -142,6 +144,57 @@ function handleCreateRoom() {
       return {
         ...response,
       };
+    });
+}
+
+function handleGetRoom() {
+  return publicProcedure
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/room/:meetingID" } })
+    .input(z.object({
+      meetingID: z.string(),
+    }))
+    .output(
+      z.object({
+        appointment_date: z.string().nullable().refine(date => !isNaN(Date.parse(date)), {
+          message: 'Data inválida'
+        }),
+        appointment_finished_at: z.null().optional(),
+        date_created: z.string().refine(date => !isNaN(Date.parse(date)), {
+          message: 'Data inválida'
+        }),
+        date_updated: z.string().refine(date => !isNaN(Date.parse(date)), {
+          message: 'Data inválida'
+        }),
+        friendly_id: z.string(),
+        id: z.string().uuid(),
+        invite_url: z.string().url().nullable().optional(),
+        owner_id: z.string().uuid(),
+        recording_url: z.string().url().nullable().optional(),
+        room_name: z.string(),
+        sort: z.null().optional(),
+        status: z.any(),
+        type: z.string(),
+        url: z.string().url()
+      })
+    )
+    .query(async ({ input: { meetingID } }) => {
+      const supabase = SupabaseAdmin();
+
+      const { data, error } = await supabase
+        .from("meeting")
+        .select("*")
+        .eq("id", meetingID)
+        .single();
+
+
+      if (error) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: error.message,
+        });
+      }
+
+      return data;
     });
 }
 
