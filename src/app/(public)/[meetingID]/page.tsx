@@ -182,7 +182,7 @@ export default function Project({ params: { meetingID } }: Props) {
   };
 
   return <div className="h-full flex items-center justify-center">
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center bg-gray-750 rounded-lg p-4">
       <div className="p-4">
         <div className="flex flex-col gap-12 lg:flex-row items-center">
           {/* Desabilitado até customização do BBB HTML para aceitar */}
