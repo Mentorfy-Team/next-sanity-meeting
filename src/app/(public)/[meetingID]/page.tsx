@@ -169,7 +169,7 @@ export default function Project({ params: { meetingID } }: Props) {
 
     const appointmentDate = new Date(room?.appointment_date);
     const now = new Date();
-    return !(appointmentDate < now);
+    return (appointmentDate.getTime() - now.getTime() <= 5 * 60 * 1000);
   };
 
   const hasMeetingStarted = () => {

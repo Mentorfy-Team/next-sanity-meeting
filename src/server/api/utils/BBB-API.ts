@@ -67,7 +67,7 @@ export class BigBlueButtonAPI {
       meetingCameraCap: 30,
       maxParticipants: maxParticipants || 10000,
       webcamsOnlyForModerator: webcamsOnlyForModerator || false,
-      logoutURL: logoutURL || "https://meet.mentorfy.io",
+      logoutURL: encodeURIComponent(logoutURL || "https://meet.mentorfy.io"),
       // welcome: "<br>Welcome to <b>%%CONFNAME%%</b>!",
       checksum: '',
     };
