@@ -133,7 +133,7 @@ export async function NavigationMenuDemo({ refreshToken }: { refreshToken?: stri
           </NavigationMenuList>
         </NavigationMenu>
       </div>
-      <AvatarMenu refreshToken={refreshToken} />
+      <AvatarMenu />
     </div>
   );
 }

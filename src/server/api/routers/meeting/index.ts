@@ -92,7 +92,7 @@ function handleJoinAsAttendee() {
 
       const { data: meeting } = await supabase.from("meeting")
         .select("*")
-        .or(`id.eq.${meetingID},friendly_id.eq.${meetingID}`)
+        .or(`friendly_id.eq.${meetingID}`)
         .single();
 
       if (!meeting) {
@@ -224,7 +224,7 @@ function handleGetRoom() {
       const { data, error } = await supabase
         .from("meeting")
         .select("*")
-        .eq("id", meetingID)
+        .eq("friendly_id", meetingID)
         .single();
 
 
