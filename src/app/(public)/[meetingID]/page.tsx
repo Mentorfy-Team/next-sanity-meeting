@@ -28,6 +28,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { useRouter } from "next/navigation"
 
 type Props = {
   params: {
@@ -40,6 +41,7 @@ type Props = {
 export default function Project({ params: { meetingID } }: Props) {
   const supabase = createClientComponentClient();
   const [usePassword, setUsePassword] = useState(false);
+  const route = useRouter();
 
   const { mutateAsync: joinAsAttendee } = trpc.meeting.joinAsAttendee.useMutation();
   const { data: room, isLoading } = trpc.meeting.getRoom.useQuery({ meetingID });
@@ -86,7 +88,6 @@ export default function Project({ params: { meetingID } }: Props) {
 
   const updateMediaStream = (type, deviceId) => {
     if (type === 'audiooutput') {
-      console.log("Updating audio output device:", deviceId); // Debugging line
       const audio = videoRef.current;
       if (audio) {
         audio.setSinkId(deviceId);
@@ -95,7 +96,6 @@ export default function Project({ params: { meetingID } }: Props) {
       return;
     } else if (mediaStream) {
       let mediaType = type === 'audioinput' ? 'audio' : 'video';
-      console.log("Updating media type:", mediaType); // Debugging line
 
       const tracks = mediaStream.getTracks();
       tracks.forEach((track) => {
@@ -161,7 +161,7 @@ export default function Project({ params: { meetingID } }: Props) {
     //const startedRoom = await startRoom({ meetingID, guestPolicy: 'ASK_MODERATOR' });
     const info = await joinAsAttendee({ meetingID, name: values.name, password: values.password });
 
-    window.open(info.url, '_blank');
+    route.push(info.url);
   }
 
   const RoomEnableToJoin = () => {

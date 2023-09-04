@@ -106,12 +106,13 @@ export class BigBlueButtonAPI {
     const params = {
       fullName,
       meetingID,
+      redirect: false,
       role: isMod ? "MODERATOR" : "VIEWER",
       password: password || "ap",
-      redirect: false,
-      guest: true,
+      guest: isMod ? false : true,
       checksum: '',
     };
+
     const checksum = this.generateChecksum("join", params);
     params['checksum'] = checksum;
 
