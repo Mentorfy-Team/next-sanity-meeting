@@ -12,17 +12,17 @@ const handler = (request: Request) => {
     req: request,
     router: appRouter,
     createContext: function (
-      { resHeaders, req }: FetchCreateContextFnOptions,
+      { req }: FetchCreateContextFnOptions,
     ): object | Promise<object> {
-      return { resHeaders, req };
+      return { req };
     },
     onError:
       env.NODE_ENV === "development"
         ? ({ path, error }) => {
-            console.error(
-              `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
-            );
-          }
+          console.error(
+            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
+          );
+        }
         : undefined,
   });
 };

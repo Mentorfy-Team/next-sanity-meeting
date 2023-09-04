@@ -1658,6 +1658,7 @@ export interface Database {
         Row: {
           appointment_date: string | null
           appointment_finished_at: string | null
+          configs: Json | null
           date_created: string | null
           date_updated: string | null
           friendly_id: string | null
@@ -1674,10 +1675,11 @@ export interface Database {
         Insert: {
           appointment_date?: string | null
           appointment_finished_at?: string | null
+          configs?: Json | null
           date_created?: string | null
           date_updated?: string | null
           friendly_id?: string | null
-          id: string
+          id?: string
           invite_url?: string | null
           owner_id: string
           recording_url?: string | null
@@ -1690,6 +1692,7 @@ export interface Database {
         Update: {
           appointment_date?: string | null
           appointment_finished_at?: string | null
+          configs?: Json | null
           date_created?: string | null
           date_updated?: string | null
           friendly_id?: string | null

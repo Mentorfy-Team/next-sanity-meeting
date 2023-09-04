@@ -17,6 +17,7 @@ export const meetingRouter = createTRPCRouter({
   joinAsModerator: handleJoinAsModerator(),
   joinAsAttendee: handleJoinAsAttendee(),
   getRoom: handleGetRoom(),
+  getRecordings: handleGetRecordings(),
 });
 
 function handleJoinAsModerator() {
@@ -106,7 +107,7 @@ function handleJoinAsAttendee() {
         meetingID: meeting.id,
         guestPolicy: "ALWAYS_ACCEPT",
         roomName: meeting.room_name!,
-        ...meeting.configs,
+        ...(meeting.configs as {}),
       });
 
       if (meetingResponse?.response?.message) {
@@ -188,6 +189,74 @@ function handleCreateRoom() {
     });
 }
 
+function handleGetRecordings() {
+  return publicProcedure
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/recordings" } })
+    .input(z.object({
+      meetingID: z.string().optional(),
+      recordID: z.string().optional(),
+    }))
+    .output(
+      z.object({
+        returncode: z.string(),
+        recordings: z.union([z.string(), z.array(z.object({
+          recordID: z.string(),
+          meetingID: z.string(),
+          internalMeetingID: z.string(),
+          name: z.string(),
+          isBreakout: z.boolean(),
+          published: z.boolean(),
+          state: z.string(),
+          startTime: z.number(),
+          endTime: z.number(),
+          participants: z.number(),
+          metadata: z.object({
+            isBreakout: z.boolean(),
+            meetingName: z.string(),
+            "gl-listed": z.boolean(),
+            meetingId: z.string(),
+          }),
+          playback: z.object({
+            format: z.array(z.object({
+              type: z.string(),
+              url: z.string().url(),
+              processingTime: z.number(),
+              length: z.number(),
+              preview: z.object({
+                images: z.array(z.object({
+                  width: z.number(),
+                  height: z.number(),
+                  alt: z.string(),
+                  content: z.string().url(),
+                })),
+              }).optional(),
+            })),
+          }),
+        }))]),
+        messageKey: z.string().optional(),
+        message: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input: { meetingID, recordID } }) => {
+
+      const bbb = new BigBlueButtonAPI();
+
+      const { data } = await bbb.getRecordings(meetingID, recordID);
+
+      if (data?.response?.message) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: data.response.message,
+        });
+      }
+      const { response } = (await convertXmlToObject(data)) as { response: MeetingRecordings };
+
+      return {
+        ...response,
+      };
+    });
+}
+
 function handleGetRoom() {
   return publicProcedure
     .meta({ /* 👉 */ openapi: { method: "GET", path: "/room/:meetingID" } })
@@ -196,7 +265,7 @@ function handleGetRoom() {
     }))
     .output(
       z.object({
-        appointment_date: z.string().nullable().refine(date => !isNaN(Date.parse(date)), {
+        appointment_date: z.string().nullable().refine(date => date && !isNaN(Date.parse(date)), {
           message: 'Data inválida'
         }),
         appointment_finished_at: z.null().optional(),
@@ -279,4 +348,54 @@ type MeetingJoin = {
   session_token: string;
   guestStatus: string;
   url: string;
+};
+
+type MeetingRecordings = {
+  returncode: string;
+  recordings: Recording[];
+};
+
+type Recording = {
+  recordID: string;
+  meetingID: string;
+  internalMeetingID: string;
+  name: string;
+  isBreakout: boolean;
+  published: boolean;
+  state: string;
+  startTime: number;
+  endTime: number;
+  participants: number;
+  metadata: Metadata;
+  playback: Playback;
+};
+
+type Metadata = {
+  isBreakout: boolean;
+  meetingName: string;
+  "gl-listed": boolean;
+  meetingId: string;
+};
+
+type Playback = {
+  format: Format[];
+};
+
+type Format = {
+  type: string;
+  url: string;
+  processingTime: number;
+  length: number;
+  preview?: Preview;
+};
+
+type Preview = {
+  images: Image[];
+};
+
+type Image = {
+  width: number;
+  height: number;
+  alt: string;
+  content: string;
 };

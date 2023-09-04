@@ -1,12 +1,22 @@
 import axios from "axios";
 import crypto from "crypto";
 
+function removeUndefinedProperties(params: Record<string, any>): Record<string, any> {
+  const cleanedParams: Record<string, any> = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) {
+      cleanedParams[key] = value;
+    }
+  }
+  return cleanedParams;
+}
+
 export class BigBlueButtonAPI {
   private baseURL = "https://meet.mentorfy.io/bigbluebutton/api/";
 
   private generateChecksum(action: string, params: Record<string, any>): string {
     const secret = "IB1P1PTq3lxeY99WSMSkXbUVEIZwjMpiXHBBIjA"; // Your shared secret
-
+    params = removeUndefinedProperties(params);
     // Remove the checksum field if present, as it's what we're trying to calculate
     delete params['checksum'];
 
@@ -168,9 +178,12 @@ export class BigBlueButtonAPI {
     // Implementação aqui
   }
 
-  async getRecordings(meetingID: string, recordID: string) {
+  async getRecordings(meetingID?: string, recordID?: string) {
     const params = { meetingID, recordID, checksum: '' };
-    const checksum = this.generateChecksum("create", params);
+    const checksum = this.generateChecksum("getRecordings", {
+      meetingID,
+      recordID,
+    });
     params['checksum'] = checksum;
 
     return await axios.get(`${this.baseURL}getRecordings`, { params });

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "pm2 stop all && yarn && yarn build && pm2 start all"
+    "deploy": "pm2 stop all && yarn && yarn build && pm2 start all",
+    "supabase:ts": "supabase gen types typescript --linked > ./src/@types/supabase/v2.types.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.2.0",
@@ -54,6 +55,7 @@
     "styled-components": "^6.0.7",
     "supabase": "^1.88.0",
     "superjson": "^1.13.1",
+    "swagger-ui-react": "^5.5.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.6",
     "trpc-openapi": "^1.2.0",
