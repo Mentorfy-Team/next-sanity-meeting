@@ -49,6 +49,7 @@ export class BigBlueButtonAPI {
     learningDashboardEnabled,
     allowStartStopRecording,
     webcamsOnlyForModerator,
+    welcome,
   }: {
     meetingID: string, moderatorPW?: string, guestPolicy?: string,
     roomName?: string, owner?: string
@@ -58,6 +59,7 @@ export class BigBlueButtonAPI {
     logo?: string, bannerText?: string,
     muteOnStart?: boolean, learningDashboardEnabled?: boolean,
     allowStartStopRecording?: boolean, webcamsOnlyForModerator?: boolean,
+    welcome?: string,
   }) {
     const params = {
       duration: duration || 0,
@@ -66,7 +68,7 @@ export class BigBlueButtonAPI {
       autoStartRecording: autoStartRecording || false,
       meetingID: meetingID,
       name: roomName,
-      record: record || false,
+      record: record || true,
       attendeePW: "ap",
       moderatorPW: moderatorPW || "mp",
       guestPolicy: guestPolicy || "ALWAYS_ACCEPT",
@@ -78,7 +80,7 @@ export class BigBlueButtonAPI {
       maxParticipants: maxParticipants || 10000,
       webcamsOnlyForModerator: webcamsOnlyForModerator || false,
       logoutURL: encodeURIComponent(logoutURL || "https://meet.mentorfy.io"),
-      // welcome: "<br>Welcome to <b>%%CONFNAME%%</b>!",
+      //welcome: 'welcome',
       checksum: '',
     };
 
@@ -148,7 +150,7 @@ export class BigBlueButtonAPI {
 
   async getMeetings() {
     const params = { checksum: '' };
-    const checksum = this.generateChecksum("create", params);
+    const checksum = this.generateChecksum("getMeetings", params);
     params['checksum'] = checksum;
 
     return await axios.get(`${this.baseURL}getMeetings`, { params });
@@ -180,10 +182,9 @@ export class BigBlueButtonAPI {
   }
 
   async getRecordings(meetingID?: string, recordID?: string) {
-    const params = { meetingID, recordID, checksum: '' };
+    const params = { meetingID, recordID };
     const checksum = this.generateChecksum("getRecordings", {
-      meetingID,
-      recordID,
+      ...params
     });
     params['checksum'] = checksum;
 

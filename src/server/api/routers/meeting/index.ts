@@ -104,7 +104,7 @@ function handleJoinAsAttendee() {
       }
 
       const { data: meetingResponse } = await bbb.createRoom({
-        meetingID: meeting.id,
+        meetingID: meeting.friendly_id,
         guestPolicy: "ALWAYS_ACCEPT",
         roomName: meeting.room_name!,
         ...(meeting.configs as {}),
@@ -241,6 +241,8 @@ function handleGetRecordings() {
 
       const bbb = new BigBlueButtonAPI();
 
+      const { data: meetings } = await bbb.getMeetings();
+
       const { data } = await bbb.getRecordings(meetingID, recordID);
 
       if (data?.response?.message) {
@@ -249,6 +251,7 @@ function handleGetRecordings() {
           message: data.response.message,
         });
       }
+      const { response: resmeetings } = (await convertXmlToObject(meetings)) as { response: MeetingRecordings };
       const { response } = (await convertXmlToObject(data)) as { response: MeetingRecordings };
 
       return {
