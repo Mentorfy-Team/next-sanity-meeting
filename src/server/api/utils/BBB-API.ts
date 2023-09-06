@@ -49,7 +49,7 @@ export class BigBlueButtonAPI {
     learningDashboardEnabled,
     allowStartStopRecording,
     webcamsOnlyForModerator,
-    welcome,
+    welcomeMessage,
   }: {
     meetingID: string, moderatorPW?: string, guestPolicy?: string,
     roomName?: string, owner?: string
@@ -59,7 +59,7 @@ export class BigBlueButtonAPI {
     logo?: string, bannerText?: string,
     muteOnStart?: boolean, learningDashboardEnabled?: boolean,
     allowStartStopRecording?: boolean, webcamsOnlyForModerator?: boolean,
-    welcome?: string,
+    welcomeMessage?: string,
   }) {
     const params = {
       duration: duration || 0,
@@ -80,8 +80,12 @@ export class BigBlueButtonAPI {
       maxParticipants: maxParticipants || 10000,
       webcamsOnlyForModerator: webcamsOnlyForModerator || false,
       logoutURL: encodeURIComponent(logoutURL || "https://meet.mentorfy.io"),
-      //welcome: 'welcome',
+      welcome: encodeURIComponent(welcomeMessage || "Bem-vindo(a) à <b>%%CONFNAME%%</b>!"),
       checksum: '',
+      moderatorOnlyMessage: moderatorOnlyMessage || "",
+      logo: logo || "",
+      bannerText: bannerText || "",
+      muteOnStart: muteOnStart || false,
     };
 
     const checksum = this.generateChecksum("create", params);
