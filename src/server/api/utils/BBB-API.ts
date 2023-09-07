@@ -80,7 +80,7 @@ export class BigBlueButtonAPI {
       maxParticipants: maxParticipants || 10000,
       webcamsOnlyForModerator: webcamsOnlyForModerator || false,
       logoutURL: encodeURIComponent(logoutURL || "https://meet.mentorfy.io"),
-      welcome: encodeURIComponent(welcomeMessage || "Bem-vindo(a) à <b>%%CONFNAME%%</b>!"),
+      welcome: encodeURIComponent(welcomeMessage || "Bem-vindo"),
       checksum: '',
       moderatorOnlyMessage: moderatorOnlyMessage || "",
       logo: logo || "",
@@ -186,7 +186,8 @@ export class BigBlueButtonAPI {
   }
 
   async getRecordings(meetingID?: string, recordID?: string, offset?: number, limit?: number) {
-    const params = { meetingID, recordID, offset, limit, checksum: '' };
+    let params = { meetingID: encodeURIComponent(meetingID || ''), recordID, offset, limit } as any;
+    params = removeUndefinedProperties(params);
     const checksum = this.generateChecksum("getRecordings", {
       ...params
     });

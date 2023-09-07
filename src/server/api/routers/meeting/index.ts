@@ -222,12 +222,12 @@ function handleGetRecordings() {
             meetingId: z.string().optional(),
             "bbb-origin": z.string().optional(),
             isBreakout: z.string().optional(),
-          }),
+          }).optional(),
           breakout: z.object({
             parentId: z.string().optional(),
             sequence: z.string().optional(),
             freeJoin: z.string().optional(),
-          }),
+          }).optional(),
           size: z.string().optional(),
           playback: z.object({
             format: z.object({
@@ -247,11 +247,11 @@ function handleGetRecordings() {
                         alt: z.string().optional(),
                       }),
                     })
-                  ),
-                }),
-              }),
-            }),
-          }),
+                  ).optional(),
+                }).optional(),
+              }).optional(),
+            }).optional(),
+          }).optional(),
           data: z.string().optional(),
         })
       ),
@@ -263,11 +263,11 @@ function handleGetRecordings() {
 
       if (userId) {
         const { data: meetings } = await SupabaseAdmin()
-          .from('meetings')
+          .from('meeting')
           .select('friendly_id')
-          .eq('owner', userId);
+          .eq('owner_id', userId);
 
-        userMeetingsIDs = meetings?.map((meeting: any) => meeting.friendly_id).join(',');
+        userMeetingsIDs = meetings?.filter((meeting: any) => meeting.friendly_id).map((meeting: any) => meeting.friendly_id).join(',') || '0';
       }
 
       const { data } = await bbb.getRecordings(userMeetingsIDs ?? meetingID, recordID, offset, limit);
@@ -280,9 +280,16 @@ function handleGetRecordings() {
       }
       const { response } = (await convertXmlToObject(data)) as { response: MeetingRecordings };
 
+      let listOfRecordings = [];
+      if (response?.recordings?.recording?.length > 0) {
+        listOfRecordings = response?.recordings?.recording;
+      } else {
+        listOfRecordings = [response?.recordings?.recording]
+      }
+
       const result = {
         ...response,
-        recordings: [response.recordings.recording[0]]
+        recordings: listOfRecordings
       };
       return result;
     });
