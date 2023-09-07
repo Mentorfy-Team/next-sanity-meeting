@@ -83,7 +83,6 @@ export default function Project({ params: { meetingID } }: Props) {
       })
       .catch((err) => console.log(err));
 
-
   }, []);
 
   const updateMediaStream = (type, deviceId) => {
