@@ -270,7 +270,7 @@ function handleGetRecordings() {
         userMeetingsIDs = meetings?.map((meeting: any) => meeting.friendly_id).join(',');
       }
 
-      const { data } = await bbb.getRecordings(userMeetingsIDs ?? meetingID, recordID);
+      const { data } = await bbb.getRecordings(userMeetingsIDs ?? meetingID, recordID, offset, limit);
 
       if (data?.response?.message) {
         throw new TRPCError({

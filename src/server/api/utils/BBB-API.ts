@@ -185,8 +185,8 @@ export class BigBlueButtonAPI {
     // Implementação aqui
   }
 
-  async getRecordings(meetingID?: string, recordID?: string) {
-    const params = { meetingID, recordID };
+  async getRecordings(meetingID?: string, recordID?: string, offset?: number, limit?: number) {
+    const params = { meetingID, recordID, offset, limit, checksum: '' };
     const checksum = this.generateChecksum("getRecordings", {
       ...params
     });
