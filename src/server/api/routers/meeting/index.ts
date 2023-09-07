@@ -195,55 +195,81 @@ function handleGetRecordings() {
     .input(z.object({
       meetingID: z.string().optional(),
       recordID: z.string().optional(),
+      userId: z.string().optional(),
+      offset: z.number().optional(),
+      limit: z.number().optional(),
     }))
-    .output(
-      z.object({
-        returncode: z.string(),
-        recordings: z.union([z.string(), z.array(z.object({
-          recordID: z.string(),
-          meetingID: z.string(),
-          internalMeetingID: z.string(),
-          name: z.string(),
-          isBreakout: z.boolean(),
-          published: z.boolean(),
-          state: z.string(),
-          startTime: z.number(),
-          endTime: z.number(),
-          participants: z.number(),
+    .output(z.object({
+      returncode: z.string().optional(),
+      recordings: z.array(
+        z.object({
+          recordID: z.string().optional(),
+          meetingID: z.string().optional(),
+          internalMeetingID: z.string().optional(),
+          name: z.string().optional(),
+          isBreakout: z.string().optional(),
+          published: z.string().optional(),
+          state: z.string().optional(),
+          startTime: z.string().optional(),
+          endTime: z.string().optional(),
+          participants: z.string().optional(),
+          rawSize: z.string().optional(),
           metadata: z.object({
-            isBreakout: z.boolean(),
-            meetingName: z.string(),
-            "gl-listed": z.boolean(),
-            meetingId: z.string(),
+            "bbb-recording-ready-url": z.string().optional(),
+            "bbb-origin-version": z.string().optional(),
+            endcallbackurl: z.string().optional(),
+            meetingName: z.string().optional(),
+            meetingId: z.string().optional(),
+            "bbb-origin": z.string().optional(),
+            isBreakout: z.string().optional(),
           }),
+          breakout: z.object({
+            parentId: z.string().optional(),
+            sequence: z.string().optional(),
+            freeJoin: z.string().optional(),
+          }),
+          size: z.string().optional(),
           playback: z.object({
-            format: z.array(z.object({
-              type: z.string(),
-              url: z.string().url(),
-              processingTime: z.number(),
-              length: z.number(),
+            format: z.object({
+              type: z.string().optional(),
+              url: z.string().optional(),
+              processingTime: z.string().optional(),
+              length: z.string().optional(),
+              size: z.string().optional(),
               preview: z.object({
-                images: z.array(z.object({
-                  width: z.number(),
-                  height: z.number(),
-                  alt: z.string(),
-                  content: z.string().url(),
-                })),
-              }).optional(),
-            })),
+                images: z.object({
+                  image: z.array(
+                    z.object({
+                      _: z.string().optional(),
+                      $: z.object({
+                        width: z.string().optional(),
+                        height: z.string().optional(),
+                        alt: z.string().optional(),
+                      }),
+                    })
+                  ),
+                }),
+              }),
+            }),
           }),
-        }))]),
-        messageKey: z.string().optional(),
-        message: z.string().optional(),
-      })
-    )
-    .mutation(async ({ input: { meetingID, recordID } }) => {
+          data: z.string().optional(),
+        })
+      ),
+    }))
+    .mutation(async ({ input: { meetingID, recordID, userId, offset, limit } }) => {
 
       const bbb = new BigBlueButtonAPI();
+      let userMeetingsIDs;
 
-      const { data: meetings } = await bbb.getMeetings();
+      if (userId) {
+        const { data: meetings } = await SupabaseAdmin()
+          .from('meetings')
+          .select('friendly_id')
+          .eq('owner', userId);
 
-      const { data } = await bbb.getRecordings(meetingID, recordID);
+      }
+
+      const { data } = await bbb.getRecordings(userMeetingsIDs ?? meetingID, recordID);
 
       if (data?.response?.message) {
         throw new TRPCError({
@@ -251,12 +277,13 @@ function handleGetRecordings() {
           message: data.response.message,
         });
       }
-      const { response: resmeetings } = (await convertXmlToObject(meetings)) as { response: MeetingRecordings };
       const { response } = (await convertXmlToObject(data)) as { response: MeetingRecordings };
 
-      return {
+      const result = {
         ...response,
+        recordings: [response.recordings.recording[0]]
       };
+      return result;
     });
 }
 
@@ -353,9 +380,49 @@ type MeetingJoin = {
   url: string;
 };
 
-type MeetingRecordings = {
-  returncode: string;
-  recordings: Recording[];
+
+type Image = {
+  _: string;
+  $: {
+    width: string;
+    height: string;
+    alt: string;
+  };
+};
+
+type Preview = {
+  images: {
+    image: Image[];
+  };
+};
+
+type Format = {
+  type: string;
+  url: string;
+  processingTime: string;
+  length: string;
+  size: string;
+  preview: Preview;
+};
+
+type Playback = {
+  format: Format;
+};
+
+type Metadata = {
+  "bbb-recording-ready-url": string;
+  "bbb-origin-version": string;
+  endcallbackurl: string;
+  meetingName: string;
+  meetingId: string;
+  "bbb-origin": string;
+  isBreakout: string;
+};
+
+type Breakout = {
+  parentId: string;
+  sequence: string;
+  freeJoin: string;
 };
 
 type Recording = {
@@ -363,42 +430,89 @@ type Recording = {
   meetingID: string;
   internalMeetingID: string;
   name: string;
-  isBreakout: boolean;
-  published: boolean;
+  isBreakout: string;
+  published: string;
   state: string;
-  startTime: number;
-  endTime: number;
-  participants: number;
+  startTime: string;
+  endTime: string;
+  participants: string;
+  rawSize: string;
   metadata: Metadata;
+  breakout: Breakout;
+  size: string;
   playback: Playback;
+  data: string;
 };
 
-type Metadata = {
-  isBreakout: boolean;
-  meetingName: string;
-  "gl-listed": boolean;
-  meetingId: string;
+type MeetingRecordings = {
+  returncode: string;
+  recordings: { recording: Recording[] };
 };
 
-type Playback = {
-  format: Format[];
-};
+const Image = z.object({
+  _: z.string(),
+  $: z.object({
+    width: z.string(),
+    height: z.string(),
+    alt: z.string(),
+  }),
+});
 
-type Format = {
-  type: string;
-  url: string;
-  processingTime: number;
-  length: number;
-  preview?: Preview;
-};
+const Preview = z.object({
+  images: z.object({
+    image: z.array(Image),
+  }),
+});
 
-type Preview = {
-  images: Image[];
-};
+const Format = z.object({
+  type: z.string(),
+  url: z.string(),
+  processingTime: z.string(),
+  length: z.string(),
+  size: z.string(),
+  preview: Preview,
+});
 
-type Image = {
-  width: number;
-  height: number;
-  alt: string;
-  content: string;
-};
+const Playback = z.object({
+  format: Format,
+});
+
+const Metadata = z.object({
+  "bbb-recording-ready-url": z.string(),
+  "bbb-origin-version": z.string(),
+  endcallbackurl: z.string(),
+  meetingName: z.string(),
+  meetingId: z.string(),
+  "bbb-origin": z.string(),
+  isBreakout: z.string(),
+});
+
+const Breakout = z.object({
+  parentId: z.string(),
+  sequence: z.string(),
+  freeJoin: z.string(),
+});
+
+const Recording = z.object({
+  recordID: z.string(),
+  meetingID: z.string(),
+  internalMeetingID: z.string(),
+  name: z.string(),
+  isBreakout: z.string(),
+  published: z.string(),
+  state: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
+  participants: z.string(),
+  rawSize: z.string(),
+  metadata: Metadata,
+  breakout: Breakout,
+  size: z.string(),
+  playback: Playback,
+  data: z.string(),
+});
+
+const Payload = z.object({
+  returncode: z.string(),
+  recordings: z.array(Recording),
+});

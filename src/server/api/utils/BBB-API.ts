@@ -12,10 +12,10 @@ function removeUndefinedProperties(params: Record<string, any>): Record<string, 
 }
 
 export class BigBlueButtonAPI {
-  private baseURL = "https://meet.mentorfy.io/bigbluebutton/api/";
+  private baseURL = "https://meeting.mentorfy.io/bigbluebutton/api/";
 
   private generateChecksum(action: string, params: Record<string, any>): string {
-    const secret = "IB1P1PTq3lxeY99WSMSkXbUVEIZwjMpiXHBBIjA"; // Your shared secret
+    const secret = "WdN9qDm714mzBJMah5jAmVjk7308G7GJhwrEvBORZL8"; // Your shared secret
     params = removeUndefinedProperties(params);
     // Remove the checksum field if present, as it's what we're trying to calculate
     delete params['checksum'];
