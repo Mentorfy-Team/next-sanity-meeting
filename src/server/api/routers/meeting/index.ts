@@ -267,6 +267,7 @@ function handleGetRecordings() {
           .select('friendly_id')
           .eq('owner', userId);
 
+        userMeetingsIDs = meetings?.map((meeting: any) => meeting.friendly_id).join(',');
       }
 
       const { data } = await bbb.getRecordings(userMeetingsIDs ?? meetingID, recordID);
