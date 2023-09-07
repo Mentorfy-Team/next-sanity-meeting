@@ -282,7 +282,7 @@ function handleGetRecordings() {
 
       const result = {
         ...response,
-        recordings: [response.recordings.recording[0]]
+        recordings: response.recordings.recording
       };
       return result;
     });
