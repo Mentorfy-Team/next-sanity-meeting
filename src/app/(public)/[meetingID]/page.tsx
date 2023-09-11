@@ -311,7 +311,7 @@ export default function Project({ params: { meetingID } }: Props) {
                         <FormMessage />
                       </FormItem>
                     )} />}
-                  <Button disabled={!RoomEnableToJoin()} type="submit">Entrar</Button>
+                  <Button type="submit">Entrar</Button>
                 </form>
               </Form>
             </div></>}
