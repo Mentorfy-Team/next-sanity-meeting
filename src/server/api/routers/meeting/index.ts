@@ -118,7 +118,7 @@ function handleJoinAsAttendee() {
       }
       const { response: createdMeeting } = (await convertXmlToObject(meetingResponse)) as { response: MeetingCreated };
 
-      const isMod = userResponse?.user?.id === meeting?.owner_id || (meeting.configs as any)?.guestAsMod;
+      const isMod = userResponse?.user?.id === meeting?.owner_id || (meeting.configs as any)?.guestAsModerator;
 
       const { data, headers } = await bbb.joinAsAttendee(name, createdMeeting.meetingID, password, isMod);
 
