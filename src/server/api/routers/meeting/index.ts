@@ -104,7 +104,7 @@ function handleJoinAsAttendee() {
       }
 
       const { data: meetingResponse } = await bbb.createRoom({
-        meetingID: meeting.friendly_id,
+        meetingID: meeting.friendly_id!,
         guestPolicy: "ALWAYS_ACCEPT",
         roomName: meeting.room_name!,
         ...(meeting.configs as {}),
@@ -118,7 +118,7 @@ function handleJoinAsAttendee() {
       }
       const { response: createdMeeting } = (await convertXmlToObject(meetingResponse)) as { response: MeetingCreated };
 
-      const isMod = userResponse?.user?.id === meeting?.owner_id;
+      const isMod = userResponse?.user?.id === meeting?.owner_id || (meeting.configs as any)?.guestAsModerator;
 
       const { data, headers } = await bbb.joinAsAttendee(name, createdMeeting.meetingID, password, isMod);
 

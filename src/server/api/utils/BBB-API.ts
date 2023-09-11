@@ -59,7 +59,7 @@ export class BigBlueButtonAPI {
     logo?: string, bannerText?: string,
     muteOnStart?: boolean, learningDashboardEnabled?: boolean,
     allowStartStopRecording?: boolean, webcamsOnlyForModerator?: boolean,
-    welcomeMessage?: string,
+    welcomeMessage?: string
   }) {
     const params = {
       duration: duration || 0,
