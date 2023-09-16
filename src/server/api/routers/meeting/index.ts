@@ -120,7 +120,7 @@ function handleJoinAsAttendee() {
 
       const isMod = userResponse?.user?.id === meeting?.owner_id || (meeting.configs as any)?.guestAsModerator;
 
-      const { data, headers } = await bbb.joinAsAttendee(name, createdMeeting.meetingID, password, isMod);
+      const { data, headers } = await bbb.joinAsAttendee(name, createdMeeting.meetingID, password, true);//temp
 
       if (data?.response?.message) {
         throw new TRPCError({

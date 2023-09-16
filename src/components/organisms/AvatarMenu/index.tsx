@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useEffect, useState } from "react";
+import zipy from "zipyai";
 
 export function AvatarMenu() {
   const supabase = createClientComponentClient<Database>()
@@ -21,30 +22,39 @@ export function AvatarMenu() {
   const [profile, setProfile] = useState<any>()
 
   useEffect(() => {
-    const getData = async () => {
-      const { data } = await supabase.auth.getSession();
+    try {
+      const getData = async () => {
+        const { data } = await supabase.auth.getSession();
 
-      if (data.session?.user.email) {
-        const { data: profileData } = await supabase.from('profile').select('name, email, id, avatar').eq('email', data.session?.user.email).maybeSingle();
-        profileData && setProfile(profileData)
+        if (data?.session?.user.email) {
+          const { data: profileData, error } = await supabase.from('profile').select('name, email, id, avatar').eq('email', data.session?.user.email).maybeSingle();
+
+          if (!error && profileData?.email) {
+            zipy.identify(profileData.email, {
+              email: profileData?.email
+            })
+            profileData && setProfile(profileData)
+          }
+        }
       }
+
+      const refreshToken = window.location.search.split('refreshToken=')[1]
+      if (refreshToken) {
+        supabase.auth.refreshSession({
+          refresh_token: refreshToken,
+        }).then(({ data, error }) => {
+          if (!error) {
+            data.session && supabase.auth.setSession(data.session)
+            window.history.replaceState({}, document.title, window.location.pathname);
+            getData();
+          }
+        });
+      }
+
+      getData();
+    } catch (error) {
+      console.error((error as any)?.message)
     }
-
-    const refreshToken = window.location.search.split('refreshToken=')[1]
-    if (refreshToken) {
-      supabase.auth.refreshSession({
-        refresh_token: refreshToken,
-      }).then(({ data, error }) => {
-        data.session && supabase.auth.setSession(data.session)
-        // remove only refreshToken from url
-        window.history.replaceState({}, document.title, window.location.pathname);
-        getData();
-      });
-
-    }
-
-
-    getData();
   }, [supabase])
 
   const getNameLetters = () => {

@@ -1,6 +1,3 @@
-"use client";
-
-import * as React from "react";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
@@ -17,6 +14,7 @@ import {
 import Image from "next/image";
 import { AvatarMenu } from "../organisms/AvatarMenu";
 import { getPages } from "@/sanity/sanity-utils";
+import { forwardRef } from "react";
 
 const components: { title: string; href: string; description: string }[] = [
   {
@@ -62,7 +60,7 @@ export async function NavigationMenuDemo({ refreshToken }: { refreshToken?: stri
   return (
     <div className="flex max-h-[60px] p-3">
       <Image
-        src={"/logo.png"}
+        src={"https://meeting.mentorfy.io/_next/image?url=%2Flogo.png&w=256&q=75"}
         alt="Logo mentorfy meeting"
         width={100}
         height={50}
@@ -138,7 +136,7 @@ export async function NavigationMenuDemo({ refreshToken }: { refreshToken?: stri
   );
 }
 
-const ListItem = React.forwardRef<
+const ListItem = forwardRef<
   React.ElementRef<"a">,
   React.ComponentPropsWithoutRef<"a">
 >(({ className, title, children, ...props }, ref) => {

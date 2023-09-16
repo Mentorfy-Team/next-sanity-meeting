@@ -11,6 +11,11 @@ const nextConfig = {
         hostname: 'cdn.sanity.io',
         port: '',
       },
+      {//(https://meeting.mentorfy.io
+        protocol: 'https',
+        hostname: 'meeting.mentorfy.io',
+        port: '',
+      },
     ],
   },
   typescript: {
