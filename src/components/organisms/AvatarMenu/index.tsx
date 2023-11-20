@@ -27,31 +27,44 @@ export function AvatarMenu() {
         const { data } = await supabase.auth.getSession();
 
         if (data?.session?.user.email) {
-          const { data: profileData, error } = await supabase.from('profile').select('name, email, id, avatar').eq('email', data.session?.user.email).maybeSingle();
+          const { data: profileData, error } = await supabase.from('profile').select('name, email, id, avatar, phone').eq('email', data.session?.user.email).maybeSingle();
 
           if (!error && profileData?.email) {
             zipy.identify(profileData.email, {
-              email: profileData?.email
+              email: profileData?.email,
+              name: profileData?.name,
+              phone: profileData?.phone,
             })
             profileData && setProfile(profileData)
           }
         }
       }
 
-      const refreshToken = window.location.search.split('refreshToken=')[1]
-      if (refreshToken) {
-        supabase.auth.refreshSession({
-          refresh_token: refreshToken,
-        }).then(({ data, error }) => {
-          if (!error) {
-            data.session && supabase.auth.setSession(data.session)
-            window.history.replaceState({}, document.title, window.location.pathname);
-            getData();
-          }
-        });
-      }
+      const loadSession = async () => {
+        try {
+          const refreshToken = window.location.search.split('refreshToken=')[1]
+          if (refreshToken) {
+            const { data: sessionData } = await supabase.auth.refreshSession({
+              refresh_token: refreshToken,
+            });
 
-      getData();
+            if (sessionData?.session)
+              await supabase.auth.setSession(sessionData?.session)
+            // remove only refreshToken from url
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (error) { }
+
+        getData();
+      };
+
+      const refreshToken = window.location.search.split('refreshToken=')[1]
+
+      if (refreshToken) {
+        loadSession()
+      } else {
+        getData();
+      }
     } catch (error) {
       console.error((error as any)?.message)
     }
