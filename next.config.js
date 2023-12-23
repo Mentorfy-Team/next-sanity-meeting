@@ -13,7 +13,7 @@ const nextConfig = {
       },
       {//(https://meeting.mentorfy.io
         protocol: 'https',
-        hostname: 'meeting.mentorfy.io',
+        hostname: 'meet.mentorfy.io',
         port: '',
       },
     ],

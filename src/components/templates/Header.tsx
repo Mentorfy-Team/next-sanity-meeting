@@ -60,7 +60,7 @@ export async function NavigationMenuDemo({ refreshToken }: { refreshToken?: stri
   return (
     <div className="flex max-h-[60px] p-3">
       <Image
-        src={"https://meeting.mentorfy.io/_next/image?url=%2Flogo.png&w=256&q=75"}
+        src={"https://meet.mentorfy.io/_next/image?url=%2Flogo.png&w=256&q=75"}
         alt="Logo mentorfy meeting"
         width={100}
         height={50}
