@@ -284,9 +284,31 @@ function handleGetRecordings() {
       if (response?.recordings?.recording?.length > 0) {
         listOfRecordings = response?.recordings?.recording;
       } else {
-        listOfRecordings = [response?.recordings?.recording]
+        listOfRecordings = [response?.recordings?.recording as unknown as Recording]
       }
 
+      // fix url
+      try {
+        listOfRecordings = listOfRecordings.map((recording) => {
+          const { playback } = recording;
+          const { format } = playback;
+          const { url } = format;
+          const newUrl = url.replace('meeting', 'meet');
+          return {
+            ...recording,
+            playback: {
+              ...playback,
+              format: {
+                ...format,
+                url: newUrl,
+              },
+            },
+          };
+        });
+      } catch (error) {
+        console.error(error);
+      }
+      
       const result = {
         ...response,
         recordings: listOfRecordings
