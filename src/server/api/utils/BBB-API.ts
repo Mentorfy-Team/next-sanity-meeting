@@ -4,7 +4,7 @@ import crypto from "crypto";
 function removeUndefinedProperties(params: Record<string, any>): Record<string, any> {
   const cleanedParams: Record<string, any> = {};
   for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined) {
+    if (value !== undefined && value !== null && value !== "undefined") {
       cleanedParams[key] = value;
     }
   }
@@ -17,6 +17,7 @@ export class BigBlueButtonAPI {
   private generateChecksum(action: string, params: Record<string, any>): string {
     const secret = "uCF4dNIYwMLQ85wnR1PkKWurh3uW45cxuVCwXajLcHI"; // Your shared secret
     params = removeUndefinedProperties(params);
+    
     // Remove the checksum field if present, as it's what we're trying to calculate
     delete params['checksum'];
 
@@ -228,6 +229,45 @@ export class BigBlueButtonAPI {
     return await axios.get(`${this.baseURL}getRecordingTextTracks`, { params });
   }
 
+  async createWebhook(callbackURL: string, meetingID?: string, eventID?: string, getRaw?: boolean) {
+    let params = { callbackURL, meetingID, eventID, getRaw, checksum: '' } as any;
+    params = removeUndefinedProperties(params);
+
+    const checksum = this.generateChecksum("hooks/create", params);
+    params['checksum'] = checksum;
+
+    const paramString = (new URLSearchParams(params)).toString();
+
+    const result = await axios.get(`${this.baseURL}hooks/create?${paramString}`);
+    return result;
+  }
+  //callbackURL=https%3A%2F%2Fapp.mentorfy.io%2Fmeetinghooks&checksum=78165c36f0132d900fc26e31fd4f9e1c56685cbd
+  //callbackURL=https%3A%2F%2Fapp.mentorfy.io%2Fmeetinghooks&checksum=78165c36f0132d900fc26e31fd4f9e1c56685cbd
+  async removeWebhook(hookID: string) {
+    let params = { hookID, checksum: '' } as any;
+    params = removeUndefinedProperties(params);
+
+    const checksum = this.generateChecksum("hooks/destroy", params);
+    params['checksum'] = checksum;
+
+    const paramString = (new URLSearchParams(params)).toString();
+
+    return await axios.get(`${this.baseURL}hooks/destroy?${paramString}`);
+  }
+  
+  async listWebhooks(meetingID?: string) {
+    let params = { meetingID, checksum: '' } as any;
+    params = removeUndefinedProperties(params);
+
+    const checksum = this.generateChecksum("hooks/list", params);
+    params['checksum'] = checksum;
+
+    const paramString = (new URLSearchParams(params)).toString();
+    return await axios.get(`${this.baseURL}hooks/list?${paramString}`);
+  }
+
+  //https://meet.mentorfy.io/bigbluebutton/api/hooks/list?checksum=4749ae3c437e4d7644ffbe4dcad8b5cd5737cf9c
+  //https://meet.mentorfy.io/bigbluebutton/api/hooks/list?checksum=4749ae3c437e4d7644ffbe4dcad8b5cd5737cf9c
   // Para chamadas mobile, você pode criar métodos separados ou usar os mesmos métodos de join com uma flag para mobile.
 }
 

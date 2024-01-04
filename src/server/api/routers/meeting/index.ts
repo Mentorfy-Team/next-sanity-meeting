@@ -1,6 +1,4 @@
 import { z } from "zod";
-import { format, startOfWeek, endOfWeek, isAfter } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import xml2js from "xml2js";
 import { cookies } from 'next/headers'
 
@@ -18,6 +16,9 @@ export const meetingRouter = createTRPCRouter({
   joinAsAttendee: handleJoinAsAttendee(),
   getRoom: handleGetRoom(),
   getRecordings: handleGetRecordings(),
+  createWebhook: handleCreateWebhook(),
+  removeWebhook: handleRemoveWebhook(),
+  listWebhooks: handleListWebhooks(),
 });
 
 function handleJoinAsModerator() {
@@ -287,7 +288,6 @@ function handleGetRecordings() {
         listOfRecordings = [response?.recordings?.recording as unknown as Recording]
       }
 
-      // fix url
       try {
         listOfRecordings = listOfRecordings.map((recording) => {
           const { playback } = recording;
@@ -301,14 +301,14 @@ function handleGetRecordings() {
               format: {
                 ...format,
                 url: newUrl,
-              },
+              }
             },
           };
         });
       } catch (error) {
         console.error(error);
       }
-      
+
       const result = {
         ...response,
         recordings: listOfRecordings
@@ -368,6 +368,87 @@ function handleGetRoom() {
     });
 }
 
+function handleCreateWebhook() {
+  return publicProcedure
+    .meta({ /* 👉 */ openapi: { method: "POST", path: "/webhooks-create/" } })
+    .input(z.object({
+      meetingID: z.string().optional(),
+      callbackURL: z.string(),
+      eventID: z.string().optional(),
+      getRaw: z.boolean().optional(),
+    }))
+    .output(z.object({
+      returncode: z.string(),
+      messageKey: z.string().optional(),
+      message: z.string().optional(),
+    }))
+    .mutation(async ({ input: { meetingID, callbackURL, eventID, getRaw } }) => {
+      const bbb = new BigBlueButtonAPI();
+
+      const { data } = await bbb.createWebhook(callbackURL, meetingID, eventID, getRaw);
+      const { response } = (await convertXmlToObject(data)) as { response: MeetingCreated };
+
+      return {
+        returncode: response.returncode,
+        messageKey: response.messageKey,
+        message: response.message,
+      };
+    });
+}
+
+function handleRemoveWebhook() {
+  return publicProcedure
+    .meta({ /* 👉 */ openapi: { method: "POST", path: "/webhooks-remove/" } })
+    .input(z.object({
+      hookID: z.string(),
+    }))
+    .output(z.boolean())
+    .query(async ({ input: { hookID } }) => {
+      const bbb = new BigBlueButtonAPI();
+
+      await bbb.removeWebhook(hookID);
+
+      return true;
+    });
+}
+
+function handleListWebhooks() {
+  return publicProcedure
+    .meta({ /* 👉 */ openapi: { method: "POST", path: "/webhooks-list/" } })
+    .input(z.object({
+      meetingID: z.string().optional(),
+    }))
+    .output(z.object({
+      returncode: z.string(),
+      hooks: z.object({
+        hook: z.union([
+          z.object({
+            hookID: z.string(),
+            callbackURL: z.string(),
+            meetingID: z.string().optional(),
+            permanentHook: z.string(),
+            rawData: z.string(),
+          }),
+          z.array(
+            z.object({
+              hookID: z.string(),
+              callbackURL: z.string(),
+              meetingID: z.string().optional(),
+              permanentHook: z.string(),
+              rawData: z.string(),
+            })
+          )])})
+    }))
+    .query(async ({ input: { meetingID } }) => {
+      const bbb = new BigBlueButtonAPI();
+
+      const { data } = await bbb.listWebhooks(meetingID);
+      const { response } = (await convertXmlToObject(data)) as { response: MeetingHookRegistred };
+      console.log(response.hooks?.hook)
+      return response;
+    });
+}
+
 function convertXmlToObject(xmlString: string) {
   return new Promise((resolve, reject) => {
     xml2js.parseString(xmlString, { explicitArray: false }, (err: any, result: unknown) => {
@@ -379,6 +460,35 @@ function convertXmlToObject(xmlString: string) {
     });
   });
 }
+
+export type MeetingHookCreated = {
+  returncode: string;
+  messageKey?: string;
+  message?: string;
+  hookID?: string;
+};
+
+export type MeetingHookDeleted = {
+  returncode: string;
+  messageKey?: string;
+  message?: string;
+  removed?: string;
+};
+
+export type MeetingHookRegistred = {
+  returncode: string;
+  hooks?: {
+   hook: hook[] | hook
+  }
+};
+
+type hook = {
+  hookID: string;
+  callbackURL: string;
+  meetingID?: string;
+  permanentHook: string;
+  rawData: string;
+ };
 
 export type MeetingCreated = {
   returncode: string;
