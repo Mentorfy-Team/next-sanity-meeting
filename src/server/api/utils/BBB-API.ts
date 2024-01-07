@@ -15,7 +15,7 @@ export class BigBlueButtonAPI {
   private baseURL = "https://meet.mentorfy.io/bigbluebutton/api/";
 
   private generateChecksum(action: string, params: Record<string, any>): string {
-    const secret = "uCF4dNIYwMLQ85wnR1PkKWurh3uW45cxuVCwXajLcHI"; // Your shared secret
+    const secret = "FuIxiQYtU47RdABQBXQeX8jR5X7ycm7betGw23tb6h8"; // Your shared secret
     params = removeUndefinedProperties(params);
     
     // Remove the checksum field if present, as it's what we're trying to calculate
@@ -138,8 +138,8 @@ export class BigBlueButtonAPI {
   }
 
   async getMeetingInfo(meetingID: string) {
-    const params = { meetingID, password: "mp", checksum: '' };
-    const checksum = this.generateChecksum("create", params);
+    const params = { meetingID, checksum: '' };
+    const checksum = this.generateChecksum("getMeetingInfo", params);
     params['checksum'] = checksum;
 
     return await axios.get(`${this.baseURL}getMeetingInfo`, { params });

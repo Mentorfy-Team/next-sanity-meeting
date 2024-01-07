@@ -15,6 +15,7 @@ export const meetingRouter = createTRPCRouter({
   joinAsModerator: handleJoinAsModerator(),
   joinAsAttendee: handleJoinAsAttendee(),
   getRoom: handleGetRoom(),
+  getMeetingInfo: handleGetMeetingInfo(),
   getRecordings: handleGetRecordings(),
   createWebhook: handleCreateWebhook(),
   removeWebhook: handleRemoveWebhook(),
@@ -280,16 +281,20 @@ function handleGetRecordings() {
         });
       }
       const { response } = (await convertXmlToObject(data)) as { response: MeetingRecordings };
-
+      
       let listOfRecordings = [];
       if (response?.recordings?.recording?.length > 0) {
         listOfRecordings = response?.recordings?.recording;
       } else {
-        listOfRecordings = [response?.recordings?.recording as unknown as Recording]
+        if(!response?.recordings?.recording){
+          listOfRecordings = []
+        }else{
+          listOfRecordings = [response?.recordings?.recording as unknown as Recording]
+        }
       }
-
+      
       try {
-        listOfRecordings = listOfRecordings.map((recording) => {
+        listOfRecordings = listOfRecordings?.map((recording) => {
           const { playback } = recording;
           const { format } = playback;
           const { url } = format;
@@ -308,7 +313,7 @@ function handleGetRecordings() {
       } catch (error) {
         console.error(error);
       }
-
+      
       const result = {
         ...response,
         recordings: listOfRecordings
@@ -445,6 +450,95 @@ function handleListWebhooks() {
       const { data } = await bbb.listWebhooks(meetingID);
       const { response } = (await convertXmlToObject(data)) as { response: MeetingHookRegistred };
       console.log(response.hooks?.hook)
+      return response;
+    });
+}
+
+// attendees: {
+//   attendee: {
+//     userID: 'w_wx6ynzkt8ben',
+//     fullName: 'Jones Albert Rios',
+//     role: 'MODERATOR',
+//     isPresenter: 'true',
+//     isListeningOnly: 'false',
+//     hasJoinedVoice: 'true',
+//     hasVideo: 'false',
+//     clientType: 'HTML5'
+//   }
+// },
+
+function handleGetMeetingInfo(): any {
+  return publicProcedure
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/meeting-info" } })
+    .input(z.object({
+      meetingID: z.string(),
+    }))
+    .output(z.object({
+      returncode: z.string(),
+      messageKey: z.string().optional(),
+      message: z.string().optional(),
+      meetingName: z.string().optional(),
+      meetingID: z.string().optional(),
+      internalMeetingID: z.string().optional(),
+      createTime: z.string().optional(),
+      createTimestamp: z.string().optional(),
+      voiceBridge: z.string().optional(),
+      dialNumber: z.string().optional(),
+      attendeePW: z.string().optional(),
+      moderatorPW: z.string().optional(),
+      running: z.string().optional(),
+      duration: z.string().optional(),
+      hasUserJoined: z.string().optional(),
+      recording: z.string().optional(),
+      hasBeenForciblyEnded: z.string().optional(),
+      startTime: z.string().optional(),
+      endTime: z.string().optional(),
+      participantCount: z.string().optional(),
+      listenerCount: z.string().optional(),
+      voiceParticipantCount: z.string().optional(),
+      videoCount: z.string().optional(),
+      maxUsers: z.string().optional(),
+      moderatorCount: z.string().optional(),
+      attendeeCount: z.string().optional(),
+      attendees: z.array(
+        z.object({
+          userID: z.string(),
+          fullName: z.string(),
+          role: z.string(),
+          isPresenter: z.string(),
+          isListeningOnly: z.string(),
+          hasJoinedVoice: z.string(),
+          hasVideo: z.string(),
+          clientType: z.string(),
+        })
+      ),
+    }))
+    .query(async ({ input: { meetingID } }) => {
+      const bbb = new BigBlueButtonAPI();
+
+      const { data } = await bbb.getMeetingInfo(meetingID);
+
+      if(data?.response?.returncode === 'FAILED'){
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: data.response.message+` (${meetingID})`,
+        });
+      }
+      const { response } = (await convertXmlToObject(data)) as { response: any };
+      
+      //fix attendees
+      let attendees = [];
+      if (response?.attendees?.attendee?.length > 0) {
+        attendees = response?.attendees?.attendee;
+      } else {
+        if(!response?.attendees?.attendee){
+          attendees = []
+        }else{
+          attendees = [response?.attendees?.attendee as unknown as Recording]
+        }
+      }
+      response.attendees = attendees;
+
       return response;
     });
 }
