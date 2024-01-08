@@ -203,60 +203,7 @@ function handleGetRecordings() {
     }))
     .output(z.object({
       returncode: z.string().optional(),
-      recordings: z.array(
-        z.object({
-          recordID: z.string().optional(),
-          meetingID: z.string().optional(),
-          internalMeetingID: z.string().optional(),
-          name: z.string().optional(),
-          isBreakout: z.string().optional(),
-          published: z.string().optional(),
-          state: z.string().optional(),
-          startTime: z.string().optional(),
-          endTime: z.string().optional(),
-          participants: z.string().optional(),
-          rawSize: z.string().optional(),
-          metadata: z.object({
-            "bbb-recording-ready-url": z.string().optional(),
-            "bbb-origin-version": z.string().optional(),
-            endcallbackurl: z.string().optional(),
-            meetingName: z.string().optional(),
-            meetingId: z.string().optional(),
-            "bbb-origin": z.string().optional(),
-            isBreakout: z.string().optional(),
-          }).optional(),
-          breakout: z.object({
-            parentId: z.string().optional(),
-            sequence: z.string().optional(),
-            freeJoin: z.string().optional(),
-          }).optional(),
-          size: z.string().optional(),
-          playback: z.object({
-            format: z.object({
-              type: z.string().optional(),
-              url: z.string().optional(),
-              processingTime: z.string().optional(),
-              length: z.string().optional(),
-              size: z.string().optional(),
-              preview: z.object({
-                images: z.object({
-                  image: z.array(
-                    z.object({
-                      _: z.string().optional(),
-                      $: z.object({
-                        width: z.string().optional(),
-                        height: z.string().optional(),
-                        alt: z.string().optional(),
-                      }),
-                    })
-                  ).optional(),
-                }).optional(),
-              }).optional(),
-            }).optional(),
-          }).optional(),
-          data: z.string().optional(),
-        })
-      ),
+      recordings: z.any(),
     }))
     .mutation(async ({ input: { meetingID, recordID, userId, offset, limit } }) => {
 
@@ -318,6 +265,7 @@ function handleGetRecordings() {
         ...response,
         recordings: listOfRecordings
       };
+      
       return result;
     });
 }
@@ -515,6 +463,9 @@ function handleGetMeetingInfo(): any {
     }))
     .query(async ({ input: { meetingID } }) => {
       const bbb = new BigBlueButtonAPI();
+
+      const { data: meetings } = await bbb.getMeetings();
+      console.log(meetings)
 
       const { data } = await bbb.getMeetingInfo(meetingID);
 
