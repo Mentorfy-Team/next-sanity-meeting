@@ -83,6 +83,7 @@ export interface Database {
           {
             foreignKeyName: "client_ai_history_profile_foreign"
             columns: ["profile"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -120,12 +121,53 @@ export interface Database {
           {
             foreignKeyName: "client_input_tool_member_area_tool_id_fkey"
             columns: ["member_area_tool_id"]
+            isOneToOne: false
             referencedRelation: "member_area_tool"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "client_input_tool_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      client_mentor: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          last_product_relation_at: string
+          mentor_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          last_product_relation_at?: string
+          mentor_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          last_product_relation_at?: string
+          mentor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_mentor_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_mentor_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -138,12 +180,14 @@ export interface Database {
           customization: Json | null
           data: Json | null
           details: Json | null
+          expires_at: string | null
           finishedAt: string | null
           id: string
           interval: string | null
           origin: string | null
           payed_price: number | null
           product_id: string | null
+          status: string | null
           subscription: boolean | null
           subscription_id: string | null
           user_id: string
@@ -154,12 +198,14 @@ export interface Database {
           customization?: Json | null
           data?: Json | null
           details?: Json | null
+          expires_at?: string | null
           finishedAt?: string | null
           id?: string
           interval?: string | null
           origin?: string | null
           payed_price?: number | null
           product_id?: string | null
+          status?: string | null
           subscription?: boolean | null
           subscription_id?: string | null
           user_id: string
@@ -170,12 +216,14 @@ export interface Database {
           customization?: Json | null
           data?: Json | null
           details?: Json | null
+          expires_at?: string | null
           finishedAt?: string | null
           id?: string
           interval?: string | null
           origin?: string | null
           payed_price?: number | null
           product_id?: string | null
+          status?: string | null
           subscription?: boolean | null
           subscription_id?: string | null
           user_id?: string
@@ -184,12 +232,14 @@ export interface Database {
           {
             foreignKeyName: "client_product_product_id_fkey"
             columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "product"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "client_product_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -200,6 +250,7 @@ export interface Database {
           background_color: string | null
           background_image: string | null
           color: string | null
+          description: string | null
           id: string
           logo: string | null
           title: string | null
@@ -208,6 +259,7 @@ export interface Database {
           background_color?: string | null
           background_image?: string | null
           color?: string | null
+          description?: string | null
           id: string
           logo?: string | null
           title?: string | null
@@ -216,6 +268,7 @@ export interface Database {
           background_color?: string | null
           background_image?: string | null
           color?: string | null
+          description?: string | null
           id?: string
           logo?: string | null
           title?: string | null
@@ -224,6 +277,7 @@ export interface Database {
           {
             foreignKeyName: "client_showcase_id_fkey"
             columns: ["id"]
+            isOneToOne: true
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -264,12 +318,14 @@ export interface Database {
           {
             foreignKeyName: "custom_domain_product_id_fkey"
             columns: ["product_id"]
+            isOneToOne: true
             referencedRelation: "product"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "custom_domain_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -382,6 +438,7 @@ export interface Database {
           {
             foreignKeyName: "directus_collections_group_foreign"
             columns: ["group"]
+            isOneToOne: false
             referencedRelation: "directus_collections"
             referencedColumns: ["collection"]
           }
@@ -419,6 +476,7 @@ export interface Database {
           {
             foreignKeyName: "directus_dashboards_user_created_foreign"
             columns: ["user_created"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -564,18 +622,21 @@ export interface Database {
           {
             foreignKeyName: "directus_files_folder_foreign"
             columns: ["folder"]
+            isOneToOne: false
             referencedRelation: "directus_folders"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_files_modified_by_foreign"
             columns: ["modified_by"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_files_uploaded_by_foreign"
             columns: ["uploaded_by"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -628,6 +689,7 @@ export interface Database {
           {
             foreignKeyName: "directus_flows_user_created_foreign"
             columns: ["user_created"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -653,6 +715,7 @@ export interface Database {
           {
             foreignKeyName: "directus_folders_parent_foreign"
             columns: ["parent"]
+            isOneToOne: false
             referencedRelation: "directus_folders"
             referencedColumns: ["id"]
           }
@@ -714,12 +777,14 @@ export interface Database {
           {
             foreignKeyName: "directus_notifications_recipient_foreign"
             columns: ["recipient"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_notifications_sender_foreign"
             columns: ["sender"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -772,24 +837,28 @@ export interface Database {
           {
             foreignKeyName: "directus_operations_flow_foreign"
             columns: ["flow"]
+            isOneToOne: false
             referencedRelation: "directus_flows"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_operations_reject_foreign"
             columns: ["reject"]
+            isOneToOne: true
             referencedRelation: "directus_operations"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_operations_resolve_foreign"
             columns: ["resolve"]
+            isOneToOne: true
             referencedRelation: "directus_operations"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_operations_user_created_foreign"
             columns: ["user_created"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -851,12 +920,14 @@ export interface Database {
           {
             foreignKeyName: "directus_panels_dashboard_foreign"
             columns: ["dashboard"]
+            isOneToOne: false
             referencedRelation: "directus_dashboards"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_panels_user_created_foreign"
             columns: ["user_created"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -897,6 +968,7 @@ export interface Database {
           {
             foreignKeyName: "directus_permissions_role_foreign"
             columns: ["role"]
+            isOneToOne: false
             referencedRelation: "directus_roles"
             referencedColumns: ["id"]
           }
@@ -952,12 +1024,14 @@ export interface Database {
           {
             foreignKeyName: "directus_presets_role_foreign"
             columns: ["role"]
+            isOneToOne: false
             referencedRelation: "directus_roles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_presets_user_foreign"
             columns: ["user"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -1034,12 +1108,14 @@ export interface Database {
           {
             foreignKeyName: "directus_revisions_activity_foreign"
             columns: ["activity"]
+            isOneToOne: false
             referencedRelation: "directus_activity"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_revisions_parent_foreign"
             columns: ["parent"]
+            isOneToOne: false
             referencedRelation: "directus_revisions"
             referencedColumns: ["id"]
           }
@@ -1110,12 +1186,14 @@ export interface Database {
           {
             foreignKeyName: "directus_sessions_share_foreign"
             columns: ["share"]
+            isOneToOne: false
             referencedRelation: "directus_shares"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_sessions_user_foreign"
             columns: ["user"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -1192,24 +1270,28 @@ export interface Database {
           {
             foreignKeyName: "directus_settings_project_logo_foreign"
             columns: ["project_logo"]
+            isOneToOne: false
             referencedRelation: "directus_files"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_settings_public_background_foreign"
             columns: ["public_background"]
+            isOneToOne: false
             referencedRelation: "directus_files"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_settings_public_foreground_foreign"
             columns: ["public_foreground"]
+            isOneToOne: false
             referencedRelation: "directus_files"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_settings_storage_default_folder_foreign"
             columns: ["storage_default_folder"]
+            isOneToOne: false
             referencedRelation: "directus_folders"
             referencedColumns: ["id"]
           }
@@ -1262,18 +1344,21 @@ export interface Database {
           {
             foreignKeyName: "directus_shares_collection_foreign"
             columns: ["collection"]
+            isOneToOne: false
             referencedRelation: "directus_collections"
             referencedColumns: ["collection"]
           },
           {
             foreignKeyName: "directus_shares_role_foreign"
             columns: ["role"]
+            isOneToOne: false
             referencedRelation: "directus_roles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "directus_shares_user_created_foreign"
             columns: ["user_created"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -1377,6 +1462,7 @@ export interface Database {
           {
             foreignKeyName: "directus_users_role_foreign"
             columns: ["role"]
+            isOneToOne: false
             referencedRelation: "directus_roles"
             referencedColumns: ["id"]
           }
@@ -1456,6 +1542,7 @@ export interface Database {
           {
             foreignKeyName: "form_user_created_fkey"
             columns: ["user_created"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -1499,6 +1586,7 @@ export interface Database {
           {
             foreignKeyName: "form_components_form_id_foreign"
             columns: ["form_id"]
+            isOneToOne: false
             referencedRelation: "form"
             referencedColumns: ["id"]
           }
@@ -1533,12 +1621,14 @@ export interface Database {
           {
             foreignKeyName: "form_submits_form_id_foreign"
             columns: ["form_id"]
+            isOneToOne: false
             referencedRelation: "form"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "form_submits_profile_id_foreign"
             columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -1570,6 +1660,7 @@ export interface Database {
           {
             foreignKeyName: "integration_token_product_id_foreign"
             columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "product"
             referencedColumns: ["id"]
           }
@@ -1628,6 +1719,7 @@ export interface Database {
           {
             foreignKeyName: "lead_approval_form_foreign"
             columns: ["form"]
+            isOneToOne: true
             referencedRelation: "form_submits"
             referencedColumns: ["id"]
           }
@@ -1658,9 +1750,11 @@ export interface Database {
         Row: {
           appointment_date: string | null
           appointment_finished_at: string | null
+          attendees: Json | null
           configs: Json | null
           date_created: string | null
           date_updated: string | null
+          duration: string | null
           friendly_id: string | null
           id: string
           invite_url: string | null
@@ -1675,9 +1769,11 @@ export interface Database {
         Insert: {
           appointment_date?: string | null
           appointment_finished_at?: string | null
+          attendees?: Json | null
           configs?: Json | null
           date_created?: string | null
           date_updated?: string | null
+          duration?: string | null
           friendly_id?: string | null
           id?: string
           invite_url?: string | null
@@ -1692,9 +1788,11 @@ export interface Database {
         Update: {
           appointment_date?: string | null
           appointment_finished_at?: string | null
+          attendees?: Json | null
           configs?: Json | null
           date_created?: string | null
           date_updated?: string | null
+          duration?: string | null
           friendly_id?: string | null
           id?: string
           invite_url?: string | null
@@ -1710,6 +1808,7 @@ export interface Database {
           {
             foreignKeyName: "meeting_owner_id_fkey"
             columns: ["owner_id"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -1735,12 +1834,14 @@ export interface Database {
           {
             foreignKeyName: "meeting_profile_meeting_id_foreign"
             columns: ["meeting_id"]
+            isOneToOne: false
             referencedRelation: "meeting"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "meeting_profile_profile_id_foreign"
             columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -1766,6 +1867,7 @@ export interface Database {
           {
             foreignKeyName: "member_area_type_id_fkey"
             columns: ["type_id"]
+            isOneToOne: false
             referencedRelation: "member_area_type"
             referencedColumns: ["id"]
           }
@@ -1836,6 +1938,7 @@ export interface Database {
           {
             foreignKeyName: "member_area_tool_parent_fkey"
             columns: ["parent"]
+            isOneToOne: false
             referencedRelation: "member_area_tool"
             referencedColumns: ["id"]
           }
@@ -1942,12 +2045,14 @@ export interface Database {
           {
             foreignKeyName: "mentorfy_config_files_directus_files_id_foreign"
             columns: ["directus_files_id"]
+            isOneToOne: false
             referencedRelation: "directus_files"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "mentorfy_config_files_mentorfy_config_id_foreign"
             columns: ["mentorfy_config_id"]
+            isOneToOne: false
             referencedRelation: "mentorfy_config"
             referencedColumns: ["id"]
           }
@@ -1994,12 +2099,14 @@ export interface Database {
           {
             foreignKeyName: "mentorfy_pages_user_created_foreign"
             columns: ["user_created"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "mentorfy_pages_user_updated_foreign"
             columns: ["user_updated"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -2085,6 +2192,7 @@ export interface Database {
           {
             foreignKeyName: "mentorfy_plans_user_created_fkey"
             columns: ["user_created"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -2128,12 +2236,14 @@ export interface Database {
           {
             foreignKeyName: "permission_model_user_created_fkey"
             columns: ["user_created"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "permission_model_user_updated_fkey"
             columns: ["user_updated"]
+            isOneToOne: false
             referencedRelation: "directus_users"
             referencedColumns: ["id"]
           }
@@ -2228,18 +2338,21 @@ export interface Database {
           {
             foreignKeyName: "product_deliver_fkey"
             columns: ["deliver"]
+            isOneToOne: false
             referencedRelation: "member_area_type"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "product_member_area_fkey"
             columns: ["member_area"]
+            isOneToOne: false
             referencedRelation: "member_area"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "product_owner_fkey"
             columns: ["owner"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -2283,7 +2396,7 @@ export interface Database {
           email?: string | null
           expiration_date?: string | null
           guidance?: boolean | null
-          id: string
+          id?: string
           interval?: string | null
           lead_id?: string | null
           meeting_token?: string | null
@@ -2325,6 +2438,7 @@ export interface Database {
           {
             foreignKeyName: "profile_id_fkey"
             columns: ["id"]
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           }
@@ -2362,12 +2476,56 @@ export interface Database {
           {
             foreignKeyName: "profile_history_code_fkey"
             columns: ["code"]
+            isOneToOne: false
             referencedRelation: "log_type"
             referencedColumns: ["code"]
           },
           {
             foreignKeyName: "profile_history_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      profile_notes: {
+        Row: {
+          created_at: string
+          files: Json | null
+          id: string
+          mentor_id: string
+          note: string | null
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          files?: Json | null
+          id?: string
+          mentor_id: string
+          note?: string | null
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          files?: Json | null
+          id?: string
+          mentor_id?: string
+          note?: string | null
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_notes_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_notes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -2396,6 +2554,7 @@ export interface Database {
           {
             foreignKeyName: "profile_permissions_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -2427,6 +2586,7 @@ export interface Database {
           {
             foreignKeyName: "team_owner_id_fkey"
             columns: ["owner_id"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           }
@@ -2455,12 +2615,14 @@ export interface Database {
           {
             foreignKeyName: "team_member_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "team_member_team_id_fkey"
             columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "team"
             referencedColumns: ["id"]
           }
@@ -2492,12 +2654,14 @@ export interface Database {
           {
             foreignKeyName: "team_member_client_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "team_member_client_team_member_id_fkey"
             columns: ["team_member_id"]
+            isOneToOne: false
             referencedRelation: "team_member"
             referencedColumns: ["id"]
           }
@@ -2518,3 +2682,83 @@ export interface Database {
     }
   }
 }
+
+export type Tables<
+  PublicTableNameOrOptions extends
+    | keyof (Database["public"]["Tables"] & Database["public"]["Views"])
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    : never = never
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"] &
+      Database["public"]["Views"])
+  ? (Database["public"]["Tables"] &
+      Database["public"]["Views"])[PublicTableNameOrOptions] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : never
+
+export type TablesInsert<
+  PublicTableNameOrOptions extends
+    | keyof Database["public"]["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
+  ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : never
+
+export type TablesUpdate<
+  PublicTableNameOrOptions extends
+    | keyof Database["public"]["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
+  ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : never
+
+export type Enums<
+  PublicEnumNameOrOptions extends
+    | keyof Database["public"]["Enums"]
+    | { schema: keyof Database },
+  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    : never = never
+> = PublicEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : PublicEnumNameOrOptions extends keyof Database["public"]["Enums"]
+  ? Database["public"]["Enums"][PublicEnumNameOrOptions]
+  : never

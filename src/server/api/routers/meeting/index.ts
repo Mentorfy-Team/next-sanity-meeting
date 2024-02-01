@@ -228,18 +228,18 @@ function handleGetRecordings() {
         });
       }
       const { response } = (await convertXmlToObject(data)) as { response: MeetingRecordings };
-      
+
       let listOfRecordings = [];
       if (response?.recordings?.recording?.length > 0) {
         listOfRecordings = response?.recordings?.recording;
       } else {
-        if(!response?.recordings?.recording){
+        if (!response?.recordings?.recording) {
           listOfRecordings = []
-        }else{
+        } else {
           listOfRecordings = [response?.recordings?.recording as unknown as Recording]
         }
       }
-      
+
       try {
         listOfRecordings = listOfRecordings?.map((recording) => {
           const { playback } = recording;
@@ -260,12 +260,12 @@ function handleGetRecordings() {
       } catch (error) {
         console.error(error);
       }
-      
+
       const result = {
         ...response,
         recordings: listOfRecordings
       };
-      
+
       return result;
     });
 }
@@ -278,26 +278,29 @@ function handleGetRoom() {
     }))
     .output(
       z.object({
-        appointment_date: z.string().nullable().refine(date => date && !isNaN(Date.parse(date)), {
-          message: 'Data inválida'
-        }),
-        appointment_finished_at: z.null().optional(),
+        id: z.string().uuid(),
+        status: z.any(),
+        sort: z.null().optional(),
         date_created: z.string().refine(date => !isNaN(Date.parse(date)), {
           message: 'Data inválida'
         }),
         date_updated: z.string().refine(date => !isNaN(Date.parse(date)), {
           message: 'Data inválida'
         }),
-        friendly_id: z.string(),
-        id: z.string().uuid(),
-        invite_url: z.string().url().nullable().optional(),
-        owner_id: z.string().uuid(),
-        recording_url: z.string().url().nullable().optional(),
         room_name: z.string(),
-        sort: z.null().optional(),
-        status: z.any(),
+        url: z.string().url(),
+        owner_id: z.string().uuid(),
+        appointment_date: z.string().nullable().refine(date => date && !isNaN(Date.parse(date)), {
+          message: 'Data inválida'
+        }),
+        appointment_finished_at: z.string().optional(),
+        recording_url: z.string().url().nullable().optional(),
         type: z.string(),
-        url: z.string().url()
+        friendly_id: z.string(),
+        invite_url: z.string().url().nullable().optional(),
+        configs: z.any().nullable().optional(),
+        attendees: z.any().nullable().optional(),
+        duration: z.any().nullable().optional(),
       })
     )
     .query(async ({ input: { meetingID } }) => {
@@ -390,7 +393,8 @@ function handleListWebhooks() {
               permanentHook: z.string(),
               rawData: z.string(),
             })
-          )])})
+          )])
+      })
     }))
     .query(async ({ input: { meetingID } }) => {
       const bbb = new BigBlueButtonAPI();
@@ -469,22 +473,22 @@ function handleGetMeetingInfo(): any {
 
       const { data } = await bbb.getMeetingInfo(meetingID);
 
-      if(data?.response?.returncode === 'FAILED'){
+      if (data?.response?.returncode === 'FAILED') {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: data.response.message+` (${meetingID})`,
+          message: data.response.message + ` (${meetingID})`,
         });
       }
       const { response } = (await convertXmlToObject(data)) as { response: any };
-      
+
       //fix attendees
       let attendees = [];
       if (response?.attendees?.attendee?.length > 0) {
         attendees = response?.attendees?.attendee;
       } else {
-        if(!response?.attendees?.attendee){
+        if (!response?.attendees?.attendee) {
           attendees = []
-        }else{
+        } else {
           attendees = [response?.attendees?.attendee as unknown as Recording]
         }
       }
@@ -523,7 +527,7 @@ export type MeetingHookDeleted = {
 export type MeetingHookRegistred = {
   returncode: string;
   hooks?: {
-   hook: hook[] | hook
+    hook: hook[] | hook
   }
 };
 
@@ -533,7 +537,7 @@ type hook = {
   meetingID?: string;
   permanentHook: string;
   rawData: string;
- };
+};
 
 export type MeetingCreated = {
   returncode: string;

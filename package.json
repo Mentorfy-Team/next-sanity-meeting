@@ -33,7 +33,7 @@
     "@radix-ui/react-toast": "^1.1.4",
     "@sanity/ui": "^1.8.2",
     "@supabase/auth-helpers-nextjs": "^0.7.4",
-    "@supabase/supabase-js": "^2.33.1",
+    "@supabase/supabase-js": "^2.39.3",
     "@tanstack/react-query": "^4.32.6",
     "@tanstack/react-query-devtools": "^4.32.6",
     "@trpc/client": "^10.37.1",
@@ -59,7 +59,7 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.6",
     "trpc-openapi": "^1.2.0",
-    "typescript": "5.1.6",
+    "typescript": "^5.3.3",
     "xml2js": "^0.6.2",
     "zipyai": "^1.7.2",
     "zod": "^3.21.4"
