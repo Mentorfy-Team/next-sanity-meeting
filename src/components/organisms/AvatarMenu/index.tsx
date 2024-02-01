@@ -83,7 +83,7 @@ export function AvatarMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 rounded-full flex items-center space-x-4">
-          <Avatar className="h-9 w-9 bg-neutral-700 data-[defaultAvatar=true]:p-2" data-defaultAvatar={!getNameLetters()}>
+          <Avatar className="h-9 w-9 bg-neutral-700 data-[defaultAvatar=true]:p-2" data-defaultavatar={!getNameLetters()}>
             <AvatarImage src={profile?.avatar || (!getNameLetters() && '/avatar-default.png')} alt="avatar" />
             <AvatarFallback>{getNameLetters()}</AvatarFallback>
           </Avatar>

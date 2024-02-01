@@ -229,8 +229,8 @@ export class BigBlueButtonAPI {
     return await axios.get(`${this.baseURL}getRecordingTextTracks`, { params });
   }
 
-  async createWebhook(callbackURL: string, meetingID?: string, eventID?: string, getRaw?: boolean) {
-    let params = { callbackURL, meetingID, eventID, getRaw, checksum: '' } as any;
+  async createWebhook(callbackURL: string, meetingID?: string, eventID?: string, getRaw?: boolean, permanentHook?: boolean) {
+    let params = { callbackURL, meetingID, eventID, getRaw, permanentHook, checksum: '' } as any;
     params = removeUndefinedProperties(params);
 
     const checksum = this.generateChecksum("hooks/create", params);
