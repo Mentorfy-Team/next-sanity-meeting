@@ -15,7 +15,7 @@ export class BigBlueButtonAPI {
   private baseURL = "https://meeting.mentorfy.io/bigbluebutton/api/";
 
   private generateChecksum(action: string, params: Record<string, any>): string {
-    const secret = "FuIxiQYtU47RdABQBXQeX8jR5X7ycm7betGw23tb6h8"; // Your shared secret
+    const secret = process.env.BBB_SECRET || "FuIxiQYtU47RdABQBXQeX8jR5X7ycm7betGw23tb6h8"; // Your shared secret
     params = removeUndefinedProperties(params);
     
     // Remove the checksum field if present, as it's what we're trying to calculate
