@@ -326,8 +326,7 @@ function handleGetRoom() {
         .from("meeting")
         .select("*")
         .eq("friendly_id", meetingID)
-        .single();
-
+        .maybeSingle();
 
       if (error) {
         throw new TRPCError({
@@ -399,7 +398,7 @@ function handleGetSession() {
           .from('profile')
           .select('*')
           .eq('refeerer', ref)
-          .single();
+          .maybeSingle();
 
       if (!profile) {
         throw new TRPCError({
