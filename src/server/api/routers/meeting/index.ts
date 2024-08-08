@@ -389,28 +389,28 @@ function handleGetSession() {
       ref: z.string(),
     }))
     .output(z.object({
-      id: z.string(),
-      first_name: z.string(),
-      email: z.string(),
+      id: z.string().nullable(),
+      first_name: z.string().nullable(),
+      email: z.string().nullable(),
     }))
     .query(async ({ input: { ref } }) => {
-      const { data: profile } = await SupabaseAdmin()
+      const { data: profile, error } = await SupabaseAdmin()
           .from('profile')
           .select('*')
           .eq('refeerer', ref)
           .maybeSingle();
 
-      if (!profile) {
+      if (error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Profile not found",
+          message: error.message,
         });
       }
 
       return {
-        id: profile.id,
-        first_name: profile.name!,
-        email: profile.email!,
+        id: profile.id || null,
+        first_name: profile.name || null,
+        email: profile.email || null,
       };
     });
 }
