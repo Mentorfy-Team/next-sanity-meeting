@@ -92,8 +92,6 @@ function handleJoinAsAttendee() {
         // use BigBlueButtonAPI to create a room
         const bbb = new BigBlueButtonAPI();
   
-        const supabase = createServerActionClient<Database>({ cookies });
-  
         //const { data: userResponse } = await supabase.auth.getUser();
         const { data: user } = await SupabaseAdmin()
           .from('profile')
@@ -101,7 +99,8 @@ function handleJoinAsAttendee() {
           .eq('refeerer', input.ref??'0')
           .single();
         
-        const { data: meeting } = await supabase.from("meeting")
+        const { data: meeting } = await SupabaseAdmin()
+          .from("meeting")
           .select("*")
           .or(`friendly_id.eq.${meetingID}`)
           .single();
