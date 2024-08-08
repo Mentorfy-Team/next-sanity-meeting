@@ -408,9 +408,9 @@ function handleGetSession() {
       }
 
       return {
-        id: profile.id || null,
-        first_name: profile.name || null,
-        email: profile.email || null,
+        id: profile?.id || null,
+        first_name: profile?.name || null,
+        email: profile?.email || null,
       };
     });
 }
