@@ -60,7 +60,7 @@ export async function NavigationMenuDemo({ ref }: { ref?: string }) {
   return (
     <div className="flex px-16 max-h-[60px] p-3 shadow-md">
       <Image
-        src={"https://meet.mentorfy.io/_next/image?url=%2Flogo.png&w=256&q=75"}
+        src={"https://meeting.mentorfy.io/_next/image?url=%2Flogo.png&w=256&q=75"}
         alt="Logo mentorfy meeting"
         width={100}
         height={50}

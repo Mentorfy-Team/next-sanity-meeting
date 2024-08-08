@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getPages } from "@/sanity/sanity-utils";
 import { TrpcProvider } from "@/utils/trpc-provider";
 import { NavigationMenuDemo } from "@/components/templates/Header";
-import { ClerkProvider } from "@clerk/nextjs";
 
 export const metadata = {
   title: "Meeting Mentorfy",

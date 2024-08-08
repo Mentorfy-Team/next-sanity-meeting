@@ -12,7 +12,7 @@ function removeUndefinedProperties(params: Record<string, any>): Record<string, 
 }
 
 export class BigBlueButtonAPI {
-  private baseURL = "https://meet.mentorfy.io/bigbluebutton/api/";
+  private baseURL = "https://meeting.mentorfy.io/bigbluebutton/api/";
 
   private generateChecksum(action: string, params: Record<string, any>): string {
     const secret = "FuIxiQYtU47RdABQBXQeX8jR5X7ycm7betGw23tb6h8"; // Your shared secret
@@ -81,7 +81,7 @@ export class BigBlueButtonAPI {
       meetingCameraCap: 30,
       maxParticipants: maxParticipants || 10000,
       webcamsOnlyForModerator: webcamsOnlyForModerator || false,
-      logoutURL: encodeURIComponent(logoutURL || "https://meet.mentorfy.io"),
+      logoutURL: encodeURIComponent(logoutURL || "https://meeting.mentorfy.io"),
       welcome: encodeURIComponent(welcomeMessage || "Bem-vindo"),
       checksum: '',
       moderatorOnlyMessage: moderatorOnlyMessage || "",
@@ -268,8 +268,8 @@ export class BigBlueButtonAPI {
     return await axios.get(`${this.baseURL}hooks/list?${paramString}`);
   }
 
-  //https://meet.mentorfy.io/bigbluebutton/api/hooks/list?checksum=4749ae3c437e4d7644ffbe4dcad8b5cd5737cf9c
-  //https://meet.mentorfy.io/bigbluebutton/api/hooks/list?checksum=4749ae3c437e4d7644ffbe4dcad8b5cd5737cf9c
+  //https://meeting.mentorfy.io/bigbluebutton/api/hooks/list?checksum=4749ae3c437e4d7644ffbe4dcad8b5cd5737cf9c
+  //https://meeting.mentorfy.io/bigbluebutton/api/hooks/list?checksum=4749ae3c437e4d7644ffbe4dcad8b5cd5737cf9c
   // Para chamadas mobile, você pode criar métodos separados ou usar os mesmos métodos de join com uma flag para mobile.
 }
 

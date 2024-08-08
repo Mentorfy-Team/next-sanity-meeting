@@ -9,7 +9,6 @@ import { saveSetCookies } from "./functions";
 import { SupabaseAdmin } from "../../utils/supabase";
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/@types/supabase/v2.types";
-import { auth, currentUser } from "@clerk/nextjs/server";
 
 export const meetingRouter = createTRPCRouter({
   createRoom: handleCreateRoom(),

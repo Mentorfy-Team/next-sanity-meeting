@@ -12,15 +12,12 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserButton, useClerk } from "@clerk/nextjs";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useEffect, useState } from "react";
 import zipy from "zipyai";
 
 export function AvatarMenu() {
   const supabase = createClientComponentClient<Database>()
-
-  // const { session } = useClerk();
 
   useEffect(() => {
     try {
@@ -43,9 +40,6 @@ export function AvatarMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <UserButton 
-          showName={true}
-        />
       </DropdownMenuTrigger>
       {/* <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
