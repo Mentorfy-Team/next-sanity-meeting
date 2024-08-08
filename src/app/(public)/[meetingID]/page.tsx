@@ -1,40 +1,23 @@
 'use client'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import * as z from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-
-import {
-  HomeIcon,
-} from "@radix-ui/react-icons"
+import { useSearchParams } from 'next/navigation';
 import { trpc } from "@/utils/trpc";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { MicrophoneOnIcon } from "@/components/icons/microphone"
-import { CameraOffIcon, CameraOnIcon } from "@/components/icons/camera"
-import clsx from "clsx"
-import { cn } from "@/lib/utils"
+import { useCallback, useEffect, useState } from "react";
+
 import { Checkbox } from "@/components/ui/checkbox"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import zipy from "zipyai";
-import { Database } from "@/@types/supabase/v2.types"
 type Props = {
   params: {
     meetingID: string,
-    refreshToken: string,
+    ref: string,
   }
 }
 
@@ -42,47 +25,37 @@ type Props = {
 export default function Project({ params: { meetingID } }: Props) {
   const [usePassword, setUsePassword] = useState(false);
   const route = useRouter();
+  const searchParams = useSearchParams();
+  const ref = searchParams?.get('ref') || '';
 
   const { mutateAsync: joinAsAttendee } = trpc.meeting.joinAsAttendee.useMutation();
   const { data: room, isLoading } = trpc.meeting.getRoom.useQuery({ meetingID });
-  const supabase = createClientComponentClient<Database>();
-
-  const [mediaStream, setMediaStream] = useState(null);
-  const [name, setName] = useState('');
-
-  const [microphoneEnabled, setMicrophoneEnabled] = useState(true);
-  const [cameraEnabled, setCameraEnabled] = useState(true);
-
-  const [audioDevices, setAudioDevices] = useState([]);
-  const [videoDevices, setVideoDevices] = useState([]);
-  const [outputDevices, setOutputDevices] = useState([]);
-
-  const [selectedAudioDevice, setSelectedAudioDevice] = useState(null);
-  const [selectedVideoDevice, setSelectedVideoDevice] = useState(null);
-  const [selectedOutputDevice, setSelectedOutputDevice] = useState(null);
-
-  const videoRef = useRef(null);
+  const { data: user } = trpc.meeting.getSession.useQuery({ ref });
 
   const loadUser = useCallback(async () => {
-    const { data, error } = await supabase.auth.getSession();
-
-    if (data?.session?.user && !error) {
-      const { data: profileData, error: profError } = await supabase.from('profile').select('name, email, id, avatar').eq('email', data.session?.user.email!).maybeSingle();
-
-      if (!profError) {
-        form.setValue('name', profileData?.name!)
-      }
+    if (user?.first_name) {
+      form.setValue('name', user.first_name);
     }
-  }, [room, isLoading]);
+
+  }, [user]);
+
 
   useEffect(() => {
-    console.log(isLoading, room);
     loadUser();
-  }, [room, isLoading])
+  }, [user])
 
   useEffect(() => {
     zipy.init("a5ea71d1").catch(() => console.error("ZipyAI failed to load"));
   }, []);
+
+  useEffect(() => {
+    if (user?.first_name) {
+      zipy.identify(user?.email, {
+        name: user?.first_name,
+        email: user?.email,
+      })
+    }
+  }, [user]);
 
   const formSchema = z.object({
     name: z.string().min(2, {
@@ -102,9 +75,15 @@ export default function Project({ params: { meetingID } }: Props) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     //const startedRoom = await startRoom({ meetingID, guestPolicy: 'ASK_MODERATOR' });
-    const info = await joinAsAttendee({ meetingID, name: values.name, password: values.password });
+    const info = await joinAsAttendee({ meetingID, name: values.name, password: values.password, ref });
 
     route.push(info.url);
+
+    if (values.name) {
+      zipy.identify(values.name, {
+        name: values.name,
+      })
+    }
   }
 
   const RoomEnableToJoin = () => {
@@ -126,6 +105,12 @@ export default function Project({ params: { meetingID } }: Props) {
       }
     }
   };
+
+  const ButtonSubmit = useCallback(({ children }: any) => {
+    return <Button type="submit"
+      disabled={!user && (form.formState.isSubmitting || (form.getValues('name') === ''))}
+    >{children}</Button>
+  }, [form.formState.isSubmitting, form.getValues('name'), user]);
 
   return <div className="h-full flex items-center justify-center">
     <div className="flex flex-col items-center justify-center bg-gray-750 rounded-lg p-4">
@@ -152,7 +137,7 @@ export default function Project({ params: { meetingID } }: Props) {
                       <FormItem>
                         <FormLabel>Digite seu nome</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g joão da silva..." {...field} />
+                          <Input placeholder="" {...field} />
                         </FormControl>
                         <FormDescription>
                           {/* This is your public display name. */}
@@ -180,7 +165,7 @@ export default function Project({ params: { meetingID } }: Props) {
                         <FormMessage />
                       </FormItem>
                     )} />}
-                  <Button type="submit">Entrar</Button>
+                  <ButtonSubmit>Entrar</ButtonSubmit>
                 </form>
               </Form>
             </div></>}

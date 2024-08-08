@@ -12,6 +12,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { UserButton, useClerk } from "@clerk/nextjs";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useEffect, useState } from "react";
 import zipy from "zipyai";
@@ -19,79 +20,32 @@ import zipy from "zipyai";
 export function AvatarMenu() {
   const supabase = createClientComponentClient<Database>()
 
-  const [profile, setProfile] = useState<any>()
+  // const { session } = useClerk();
 
   useEffect(() => {
     try {
       const getData = async () => {
-        const { data } = await supabase.auth.getSession();
-
-        if (data?.session?.user.email) {
-          const { data: profileData, error } = await supabase.from('profile').select('name, email, id, avatar, phone').eq('email', data.session?.user.email).maybeSingle();
-
-          if (!error && profileData?.email) {
-            zipy.identify(profileData.email, {
-              email: profileData?.email,
-              name: profileData?.name,
-              phone: profileData?.phone,
-            })
-            profileData && setProfile(profileData)
-          }
-        }
+        // if (session?.user.id) {
+        //   zipy.identify(session.user.emailAddresses?.[0].emailAddress, {
+        //     email: session.user.emailAddresses?.[0].emailAddress,
+        //     name: session?.user?.fullName,
+        //     phone: session?.user?.phoneNumbers?.[0]?.phoneNumber,
+        //   })
+        // }
       }
 
-      const loadSession = async () => {
-        try {
-          const refreshToken = window.location.search.split('refreshToken=')[1]
-          if (refreshToken) {
-            const { data: sessionData } = await supabase.auth.refreshSession({
-              refresh_token: refreshToken,
-            });
-
-            if (sessionData?.session)
-              await supabase.auth.setSession(sessionData?.session)
-            // remove only refreshToken from url
-            window.history.replaceState({}, document.title, window.location.pathname);
-          }
-        } catch (error) { }
-
-        getData();
-      };
-
-      const refreshToken = window.location.search.split('refreshToken=')[1]
-
-      if (refreshToken) {
-        loadSession()
-      } else {
-        getData();
-      }
+      getData();
     } catch (error) {
       console.error((error as any)?.message)
     }
   }, [supabase])
 
-  const getNameLetters = () => {
-    if (profile?.name) {
-      const name = profile?.name.split(' ')
-      return name.length > 1 ? name[0][0] + name[1][0] : name[0][0]
-    }
-
-    return null
-  }
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-9 rounded-full flex items-center space-x-4">
-          <Avatar className="h-9 w-9 bg-neutral-700 data-[defaultAvatar=true]:p-2" data-defaultavatar={!getNameLetters()}>
-            <AvatarImage src={profile?.avatar || (!getNameLetters() && '/avatar-default.png')} alt="avatar" />
-            <AvatarFallback>{getNameLetters()}</AvatarFallback>
-          </Avatar>
-          <div className="text-left ">
-            <p className="text-sm text-muted-foreground">{'Autenticado como:'}</p>
-            <p className="text-sm font-medium leading-none">{profile?.name || 'Convidado'}</p>
-          </div>
-        </Button>
+        <UserButton 
+          showName={true}
+        />
       </DropdownMenuTrigger>
       {/* <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">

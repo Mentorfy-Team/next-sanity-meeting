@@ -51,6 +51,7 @@ export class BigBlueButtonAPI {
     allowStartStopRecording,
     webcamsOnlyForModerator,
     welcomeMessage,
+    guestAsModerator
   }: {
     meetingID: string, moderatorPW?: string, guestPolicy?: string,
     roomName?: string, owner?: string
@@ -60,7 +61,7 @@ export class BigBlueButtonAPI {
     logo?: string, bannerText?: string,
     muteOnStart?: boolean, learningDashboardEnabled?: boolean,
     allowStartStopRecording?: boolean, webcamsOnlyForModerator?: boolean,
-    welcomeMessage?: string
+    welcomeMessage?: string,guestAsModerator?: boolean
   }) {
     const params = {
       duration: duration || 0,
@@ -87,6 +88,7 @@ export class BigBlueButtonAPI {
       logo: logo || "",
       bannerText: bannerText || "",
       muteOnStart: muteOnStart || false,
+      guestAsModerator: guestAsModerator || false,
     };
 
     const checksum = this.generateChecksum("create", params);

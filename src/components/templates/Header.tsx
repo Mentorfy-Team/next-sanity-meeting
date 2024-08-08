@@ -54,11 +54,11 @@ const components: { title: string; href: string; description: string }[] = [
   },
 ];
 
-export async function NavigationMenuDemo({ refreshToken }: { refreshToken?: string }) {
+export async function NavigationMenuDemo({ ref }: { ref?: string }) {
   //const pages = await getPages();
 
   return (
-    <div className="flex max-h-[60px] p-3">
+    <div className="flex px-16 max-h-[60px] p-3 shadow-md">
       <Image
         src={"https://meet.mentorfy.io/_next/image?url=%2Flogo.png&w=256&q=75"}
         alt="Logo mentorfy meeting"
@@ -139,12 +139,12 @@ export async function NavigationMenuDemo({ refreshToken }: { refreshToken?: stri
 const ListItem = forwardRef<
   React.ElementRef<"a">,
   React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
+>(({ className, title, children, ...props }, reff) => {
   return (
     <li>
       <NavigationMenuLink asChild>
         <a
-          ref={ref}
+          ref={reff}
           className={cn(
             "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             className,

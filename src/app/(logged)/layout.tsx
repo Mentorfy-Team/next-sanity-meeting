@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getPages } from "@/sanity/sanity-utils";
 import { TrpcProvider } from "@/utils/trpc-provider";
 import { NavigationMenuDemo } from "@/components/templates/Header";
+import { ClerkProvider } from "@clerk/nextjs";
 
 export const metadata = {
   title: "Meeting Mentorfy",
@@ -15,11 +16,11 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="max-w-7xl min-w-max">
-        <TrpcProvider>
-          <NavigationMenuDemo />
-          {/* <header className="flex items-center justify-between">
+      <html lang="en" className="dark">
+        <body className="min-w-max">
+          <TrpcProvider>
+            <NavigationMenuDemo />
+            {/* <header className="flex items-center justify-between">
             <Link href="/" className="bg-gradient-to-r from-orange-400 via-red-500 to-purple-600 bg-clip-text text-transparent text-lg font-bold">Kapehe</Link>
             <div className="flex items-center gap-5 text-sm text-gray-600">
               {pages.map((page) => (
@@ -29,9 +30,9 @@ export default async function RootLayout({
             </div>
 
           </header> */}
-          <main className="py-16 max-w-7xl">{children}</main>
-        </TrpcProvider>
-      </body>
-    </html>
+            <main className="py-16">{children}</main>
+          </TrpcProvider>
+        </body>
+      </html>
   );
 }

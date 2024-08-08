@@ -9,12 +9,14 @@ import { saveSetCookies } from "./functions";
 import { SupabaseAdmin } from "../../utils/supabase";
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/@types/supabase/v2.types";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 export const meetingRouter = createTRPCRouter({
   createRoom: handleCreateRoom(),
   joinAsModerator: handleJoinAsModerator(),
   joinAsAttendee: handleJoinAsAttendee(),
   getRoom: handleGetRoom(),
+  getSession: handleGetSession(),
   getMeetingInfo: handleGetMeetingInfo(),
   getRecordings: handleGetRecordings(),
   createWebhook: handleCreateWebhook(),
@@ -70,6 +72,7 @@ function handleJoinAsAttendee() {
       meetingID: z.string(),
       name: z.string(),
       password: z.string().optional(),
+      ref: z.string().optional(),
     }))
     .output(z.object({
       returncode: z.string(),
@@ -84,57 +87,71 @@ function handleJoinAsAttendee() {
       cookie: z.any(),
     }))
     .mutation(async ({ input, ctx }) => {
-      const { meetingID, name, password } = input;
+      try{
+        const { meetingID, name, password } = input;
 
-      // use BigBlueButtonAPI to create a room
-      const bbb = new BigBlueButtonAPI();
-
-      const supabase = createServerActionClient<Database>({ cookies });
-
-      const { data: userResponse } = await supabase.auth.getUser();
-
-      const { data: meeting } = await supabase.from("meeting")
-        .select("*")
-        .or(`friendly_id.eq.${meetingID}`)
-        .single();
-
-      if (!meeting) {
+        // use BigBlueButtonAPI to create a room
+        const bbb = new BigBlueButtonAPI();
+  
+        const supabase = createServerActionClient<Database>({ cookies });
+  
+        //const { data: userResponse } = await supabase.auth.getUser();
+        const { data: user } = await SupabaseAdmin()
+          .from('profile')
+          .select('*')
+          .eq('refeerer', input.ref??'0')
+          .single();
+        
+        const { data: meeting } = await supabase.from("meeting")
+          .select("*")
+          .or(`friendly_id.eq.${meetingID}`)
+          .single();
+  
+        if (!meeting) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Sala não encontrada",
+          });
+        }
+  
+        const { data: meetingResponse } = await bbb.createRoom({
+          meetingID: meeting.friendly_id!,
+          guestPolicy: "ALWAYS_ACCEPT",
+          roomName: meeting.room_name!,
+          ...(meeting.configs as {}),
+        });
+  
+        if (meetingResponse?.response?.message) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: meetingResponse.response.message,
+          });
+        }
+        const { response: createdMeeting } = (await convertXmlToObject(meetingResponse)) as { response: MeetingCreated };
+  
+        const isMod = (user?.id) === meeting?.owner_id || (meeting.configs as any)?.guestAsModerator;
+        console.log('## isMod', isMod, (user?.id), meeting)
+  
+        const { data, headers } = await bbb.joinAsAttendee(name, createdMeeting.meetingID, password, isMod);//temp
+  
+        if (data?.response?.message) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: data.response.message,
+          });
+        }
+        const { response } = (await convertXmlToObject(data)) as { response: MeetingJoin };
+  
+        saveSetCookies(headers);
+  
+        return { ...response };
+      }catch(error){
+        console.log('## error', error)
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Sala não encontrada",
+          message: error.message,
         });
       }
-
-      const { data: meetingResponse } = await bbb.createRoom({
-        meetingID: meeting.friendly_id!,
-        guestPolicy: "ALWAYS_ACCEPT",
-        roomName: meeting.room_name!,
-        ...(meeting.configs as {}),
-      });
-
-      if (meetingResponse?.response?.message) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: meetingResponse.response.message,
-        });
-      }
-      const { response: createdMeeting } = (await convertXmlToObject(meetingResponse)) as { response: MeetingCreated };
-
-      const isMod = userResponse?.user?.id === meeting?.owner_id || (meeting.configs as any)?.guestAsModerator;
-
-      const { data, headers } = await bbb.joinAsAttendee(name, createdMeeting.meetingID, password, true);//temp
-
-      if (data?.response?.message) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: data.response.message,
-        });
-      }
-      const { response } = (await convertXmlToObject(data)) as { response: MeetingJoin };
-
-      saveSetCookies(headers);
-
-      return { ...response };
     });
 }
 
@@ -229,7 +246,7 @@ function handleGetRecordings() {
       }
       const { response } = (await convertXmlToObject(data)) as { response: MeetingRecordings };
 
-      let listOfRecordings = [];
+      let listOfRecordings: any[] = [];
       if (response?.recordings?.recording?.length > 0) {
         listOfRecordings = response?.recordings?.recording;
       } else {
@@ -276,32 +293,32 @@ function handleGetRoom() {
     .input(z.object({
       meetingID: z.string(),
     }))
-    .output(
-      z.object({
-        id: z.string().uuid(),
-        status: z.any(),
-        sort: z.null().optional(),
-        date_created: z.string().refine(date => !isNaN(Date.parse(date)), {
-          message: 'Data inválida'
-        }),
-        date_updated: z.string().refine(date => !isNaN(Date.parse(date)), {
-          message: 'Data inválida'
-        }),
-        room_name: z.string(),
-        url: z.string().url(),
-        owner_id: z.string().uuid(),
-        appointment_date: z.string().nullable().refine(date => date && !isNaN(Date.parse(date)), {
-          message: 'Data inválida'
-        }),
-        appointment_finished_at: z.string().optional(),
-        recording_url: z.string().url().nullable().optional(),
-        type: z.string(),
-        friendly_id: z.string(),
-        invite_url: z.string().url().nullable().optional(),
-        configs: z.any().nullable().optional(),
-        attendees: z.any().nullable().optional(),
-        duration: z.any().nullable().optional(),
-      })
+    .output(z.any()
+      // z.object({
+      //   id: z.string().uuid(),
+      //   status: z.any(),
+      //   sort: z.null().optional(),
+      //   date_created: z.string().refine(date => !isNaN(Date.parse(date)), {
+      //     message: 'Data inválida'
+      //   }),
+      //   date_updated: z.string().refine(date => !isNaN(Date.parse(date)), {
+      //     message: 'Data inválida'
+      //   }),
+      //   room_name: z.string(),
+      //   url: z.string().url(),
+      //   owner_id: z.string().uuid(),
+      //   appointment_date: z.string().nullable().refine(date => date && !isNaN(Date.parse(date)), {
+      //     message: 'Data inválida'
+      //   }),
+      //   appointment_finished_at: z.string().optional(),
+      //   recording_url: z.string().url().nullable().optional(),
+      //   type: z.string(),
+      //   friendly_id: z.string(),
+      //   invite_url: z.string().url().nullable().optional(),
+      //   configs: z.any().nullable().optional(),
+      //   attendees: z.any().nullable().optional(),
+      //   duration: z.any().nullable().optional(),
+      // })
     )
     .query(async ({ input: { meetingID } }) => {
       const supabase = SupabaseAdmin();
@@ -319,7 +336,6 @@ function handleGetRoom() {
           message: error.message,
         });
       }
-
       return data;
     });
 }
@@ -365,6 +381,39 @@ function handleRemoveWebhook() {
       await bbb.removeWebhook(hookID);
 
       return true;
+    });
+}
+
+function handleGetSession() {
+  return publicProcedure
+    .meta({ /* 👉 */ openapi: { method: "POST", path: "/session/" } })
+    .input(z.object({
+      ref: z.string(),
+    }))
+    .output(z.object({
+      id: z.string(),
+      first_name: z.string(),
+      email: z.string(),
+    }))
+    .query(async ({ input: { ref } }) => {
+      const { data: profile } = await SupabaseAdmin()
+          .from('profile')
+          .select('*')
+          .eq('refeerer', ref)
+          .single();
+
+      if (!profile) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Profile not found",
+        });
+      }
+
+      return {
+        id: profile.id,
+        first_name: profile.name!,
+        email: profile.email!,
+      };
     });
 }
 

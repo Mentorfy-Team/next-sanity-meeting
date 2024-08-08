@@ -1,6 +1,4 @@
 import "../globals.css";
-import Link from "next/link";
-import { getPages } from "@/sanity/sanity-utils";
 import { TrpcProvider } from "@/utils/trpc-provider";
 import { NavigationMenuDemo } from "@/components/templates/Header";
 
@@ -19,7 +17,7 @@ export default async function RootLayout({
       <head>
         <link rel="shortcut icon" href="/favicon.png" />
       </head>
-      <body className="max-w-7xl min-w-max h-[100vh] flex flex-col">
+      <body className="min-w-max h-[100vh] flex flex-col">
         <TrpcProvider>
           <NavigationMenuDemo />
           {/* <header className="flex items-center justify-between">
@@ -32,7 +30,7 @@ export default async function RootLayout({
             </div>
 
           </header> */}
-          <main className="py-16 max-w-7xl flex-1">{children}</main>
+          <main className="py-16 flex-1">{children}</main>
         </TrpcProvider>
       </body>
     </html>
