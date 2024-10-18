@@ -8,12 +8,13 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useSearchParams } from 'next/navigation';
 import { trpc } from "@/utils/trpc";
 import { useCallback, useEffect, useState } from "react";
+import { useUserStore } from '@/hooks/userStore';
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import zipy from "zipyai";
+
 type Props = {
   params: {
     meetingID: string,
@@ -21,41 +22,26 @@ type Props = {
   }
 }
 
-
 export default function Project({ params: { meetingID } }: Props) {
   const [usePassword, setUsePassword] = useState(false);
   const route = useRouter();
   const searchParams = useSearchParams();
   const ref = searchParams?.get('ref') || '';
 
-  const { mutateAsync: joinAsAttendee } = trpc.meeting.joinAsAttendee.useMutation();
   const { data: room, isLoading } = trpc.meeting.getRoom.useQuery({ meetingID });
-  const { data: user } = trpc.meeting.getSession.useQuery({ ref });
+  const { data: userFromQuery } = trpc.meeting.getSession.useQuery({ ref });
+
+  const { id: userId, name: userName, setName } = useUserStore();
 
   const loadUser = useCallback(async () => {
-    if (user?.first_name) {
-      form.setValue('name', user.first_name);
+    if (userFromQuery?.first_name) {
+      setName(userFromQuery.first_name);
     }
-
-  }, [user]);
-
+  }, [userFromQuery, setName]);
 
   useEffect(() => {
     loadUser();
-  }, [user])
-
-  useEffect(() => {
-    zipy.init("a5ea71d1").catch(() => console.error("ZipyAI failed to load"));
-  }, []);
-
-  useEffect(() => {
-    if (user?.first_name) {
-      zipy.identify(user?.email, {
-        name: user?.first_name,
-        email: user?.email,
-      })
-    }
-  }, [user]);
+  }, [loadUser]);
 
   const formSchema = z.object({
     name: z.string().min(2, {
@@ -69,21 +55,13 @@ export default function Project({ params: { meetingID } }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      name: userName,
     },
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    //const startedRoom = await startRoom({ meetingID, guestPolicy: 'ASK_MODERATOR' });
-    const info = await joinAsAttendee({ meetingID, name: values.name, password: values.password, ref });
-
-    route.push(info.url);
-
-    if (values.name) {
-      zipy.identify(values.name, {
-        name: values.name,
-      })
-    }
+    setName(values.name);
+    route.push(`/${meetingID}/room`);
   }
 
   const RoomEnableToJoin = () => {
@@ -108,9 +86,9 @@ export default function Project({ params: { meetingID } }: Props) {
 
   const ButtonSubmit = useCallback(({ children }: any) => {
     return <Button type="submit"
-      disabled={!user && (form.formState.isSubmitting || (form.getValues('name') === ''))}
+      disabled={!userFromQuery && (form.formState.isSubmitting || (form.getValues('name') === ''))}
     >{children}</Button>
-  }, [form.formState.isSubmitting, form.getValues('name'), user]);
+  }, [form.formState.isSubmitting, form.getValues('name'), userFromQuery]);
 
   return <div className="h-full flex items-center justify-center">
     <div className="flex flex-col items-center justify-center bg-gray-750 rounded-lg p-4">
@@ -173,4 +151,4 @@ export default function Project({ params: { meetingID } }: Props) {
       </div>
     </div>
   </div>
-} 
+}

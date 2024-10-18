@@ -9,6 +9,7 @@ import { saveSetCookies } from "./functions";
 import { SupabaseAdmin } from "../../utils/supabase";
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/@types/supabase/v2.types";
+import createToken from "./createToken";
 
 export const meetingRouter = createTRPCRouter({
   createRoom: handleCreateRoom(),
@@ -21,7 +22,29 @@ export const meetingRouter = createTRPCRouter({
   createWebhook: handleCreateWebhook(),
   removeWebhook: handleRemoveWebhook(),
   listWebhooks: handleListWebhooks(),
+  createToken: handleCreateToken(),
 });
+
+function handleCreateToken() {
+  return publicProcedure
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/create-token" } })
+    .input(z.object({
+      user_id: z.string(),
+      exp: z.string().optional(),
+      call_cids: z.string().optional(),
+    }))
+    .output(z.object({
+      userId: z.string(),
+      token: z.string(),
+      apiKey: z.string(),
+    }))
+    .query(async ({ input }) => {
+      console.log('input', input);
+      const { user_id, exp } = input;
+      
+      return createToken(user_id, exp);
+    });
+}
 
 function handleJoinAsModerator() {
   return publicProcedure
