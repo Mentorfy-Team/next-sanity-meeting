@@ -11,13 +11,9 @@ export const useGetCallById = (id: string | string[]) => {
     if (!client) return;
 
     const loadCall = async () => {
-      const { calls } = await client.queryCalls({
-        filter_conditions: {
-          id,
-        },
-      });
+      const call = client.call('default', id as string);
 
-      if (calls.length > 0) setCall(calls[0]);
+      setCall(call);
       setIsCalLoading(false);
     };
     loadCall();

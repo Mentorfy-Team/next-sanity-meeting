@@ -23,7 +23,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Loader from './Loader';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { LayoutList, Users, MessageSquare } from 'lucide-react';
+import { LayoutList, Users, MessageSquare, MoreHorizontal } from 'lucide-react';
 import EndCallButton from './EndCallButton';
 import "@stream-io/video-react-sdk/dist/css/styles.css"
 import "stream-chat-react/dist/css/v2/index.css";
@@ -60,25 +60,14 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
 
   useEffect(() => {
     const initializeChannel = async () => {
-      if (!chatClient || !call) return;
-
-      const existingChannels = await chatClient.queryChannels({ id: meetingId });
-
-      if (existingChannels.length === 0) {
-        // Create a new channel if it doesn't exist
-        const newChannel = chatClient.channel('messaging', meetingId, {
-          name: `Video Call Chat - ${meetingId}`,
-          created_by: { id: call.currentUserId || '', role: isModerator ? 'moderator' : 'guest' },
-        });
+      if (!chatClient || !call || !meetingId) return;
+      try{
+        const channel = chatClient.channel("call", meetingId);
+        setActiveChannel(channel as any);
+      } catch (error) {
+        const newChannel = chatClient.channel('call', meetingId);
         await newChannel.create();
         setActiveChannel(newChannel as any);
-      } else {
-        const channel = existingChannels[0];
-        // Update user role if necessary
-        if (isModerator) {
-          await channel.addModerators([call.currentUserId || '']);
-        }
-        setActiveChannel(channel as any);
       }
     };
 
@@ -124,8 +113,8 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
         })}>
           <CallLayout />
         </div>
-        <div className={cn("sidebar-container mr-2 min-w-[400px] ml-2", {
-          "hidden min-w-0 ml-0 mr-0": !showParticipants && !showChat,
+        {!(!showChat && !showParticipants) && <div className={cn("sidebar-container mr-2 min-w-[400px] ml-2", {
+          "hidden min-w-0 ml-0 mr-0": !showChat && !showParticipants,
           "mobile": isMobile,
         })}>
           {showParticipants && (
@@ -147,49 +136,56 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
               </Chat>
             </div>
           )}
-        </div>
+        </div>}
       </div>
 
-      <div className="fixed bottom-0 flex w-full items-center justify-center gap-2 flex-wrap">
-        <div className="flex flex-col sm:flex-row w-full justify-center items-center gap-2">
-          <div className="flex justify-center items-center gap-2">
-            {isModerator && <DropdownMenu>
-              <div className="flex items-center">
-                <DropdownMenuTrigger className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b]">
-                  <LayoutList size={20} className="text-white" />
-                </DropdownMenuTrigger>
-              </div>
-
-              <DropdownMenuContent className="border-dark-1 bg-neutral-900 text-white">
-                {["Grid", "Speaker-Left", "Speaker-Right", "Speaker-Top", "Speaker-Bottom"].map((item, index) => (
-                  <div key={index}>
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={() =>
-                        setLayout(item.toLowerCase() as CallLayoutType)
-                      }
-                    >
-                      {item}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="border-dark-1" />
-                  </div>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>}
-            {isModerator && <CallStatsButton />}
-            <button onClick={toggleParticipants}>
-              <div className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b]">
-                <Users size={20} className="text-white" />
-              </div>
-            </button>
-            <button onClick={toggleChat}>
-              <div className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b]">
-                <MessageSquare size={20} className="text-white" />
-              </div>
-            </button>
-            <EndCallButton />
-          </div>
+      <div className="fixed bottom-0 flex w-full items-center justify-center gap-2">
+        <div className="control_wrapper flex w-full justify-center items-center">
           <CallControls onLeave={() => router.push("/")} />
+          <DropdownMenu>
+            <DropdownMenuTrigger className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b] ml-2">
+              <MoreHorizontal size={20} className="text-white" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="border-dark-1 bg-neutral-900 text-white">
+              {isModerator && (
+                <>
+                  <DropdownMenuItem>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="w-full text-left">
+                        <LayoutList size={20} className="inline-block mr-2" />
+                        Layout
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="border-dark-1 bg-neutral-900 text-white">
+                        {["Grid", "Speaker-Left", "Speaker-Right", "Speaker-Top", "Speaker-Bottom"].map((item, index) => (
+                          <DropdownMenuItem
+                            key={index}
+                            className="cursor-pointer"
+                            onClick={() => setLayout(item.toLowerCase() as CallLayoutType)}
+                          >
+                            {item}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </DropdownMenuItem>
+                </>
+              )}
+              <DropdownMenuItem onClick={toggleParticipants}>
+                <Users size={20} className="inline-block mr-2" />
+                Participantes
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={toggleChat}>
+                <MessageSquare size={20} className="inline-block mr-2" />
+                Chat
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <EndCallButton />
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {isModerator && <div className="ml-2">
+            <CallStatsButton />
+          </div>}
         </div>
       </div>
     </section>

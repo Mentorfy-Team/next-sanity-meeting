@@ -24,5 +24,6 @@ export const tokenProvider = async (userId: string) => {
     exp,
     issued,
   });
+  
   return token;
 };
