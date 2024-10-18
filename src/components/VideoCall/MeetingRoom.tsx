@@ -36,6 +36,7 @@ import "stream-chat-react/dist/css/v2/index.css";
 import "./SpeakerView.scss"
 import { useUserStore } from '@/hooks/userStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useCreateStreamChatClient } from '@/hooks/useChatClient';
 
 interface MeetingRoomProps {
 }
@@ -52,7 +53,7 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
   const callingState = useCallCallingState();
   const call = useCall();
   const { name: userName, token, apiKey, meetingId, isModerator } = useUserStore();
-  const chatClient = useCreateChatClient({
+  const chatClient = useCreateStreamChatClient({
     apiKey: apiKey,
     userData: { 
       id: call?.currentUserId || '', 
@@ -130,7 +131,7 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
           {showChat && chatClient && activeChannel && (
             <div className="h-full w-full">
               <Chat client={chatClient}>
-                <Channel channel={activeChannel}>
+                <Channel>
                   <Window>
                     <ChannelHeader />
                     <MessageList />
@@ -146,11 +147,11 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
 
       <div className="fixed bottom-0 flex w-full items-center justify-center gap-2">
         <div className="control_wrapper flex w-full justify-center items-center">
-          {!isModerator && (<button onClick={toggleChat}>
+          {/* {!isModerator && (<button onClick={toggleChat}>
               <div className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b]">
                 <MessageSquare size={20} className="text-white" />
               </div>
-            </button>)}
+            </button>)} */}
           <CallControls isModerator={isModerator} onLeave={() => router.push("/")} />
           {isModerator && <DropdownMenu>
             <DropdownMenuTrigger className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b] ml-2">
@@ -184,10 +185,10 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
                 <Users size={20} className="inline-block mr-2" />
                 Participantes
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={toggleChat}>
+              {/* <DropdownMenuItem onClick={toggleChat}>
                 <MessageSquare size={20} className="inline-block mr-2" />
                 Chat
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuItem>
                 <EndCallButton />
               </DropdownMenuItem>

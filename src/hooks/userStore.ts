@@ -1,6 +1,4 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserState {
   id: string;
@@ -18,24 +16,16 @@ interface UserState {
 
 const generateRandomId = () => Math.floor(Math.random() * 1000000).toString();
 
-export const useUserStore = create<UserState>()(
-  persist(
-    (set) => ({
-      id: generateRandomId(),
-      name: '',
-      setName: (name: string) => set({ name }),
-      setToken: (token: string) => set({ token }),
-      setApiKey: (apiKey: string) => set({ apiKey }),
-      token: '',
-      apiKey: '',
-      isModerator: false,
-      setIsModerator: (isModerator: boolean) => set({ isModerator }),
-      setMeetingId: (meetingId: string) => set({ meetingId }),
-      meetingId: '',
-    }),
-    {
-      name: 'user-storage',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
-  )
-);
+export const useUserStore = create<UserState>()((set) => ({
+  id: generateRandomId(),
+  name: '',
+  setName: (name: string) => set({ name }),
+  setToken: (token: string) => set({ token }),
+  setApiKey: (apiKey: string) => set({ apiKey }),
+  token: '',
+  apiKey: '',
+  isModerator: false,
+  setIsModerator: (isModerator: boolean) => set({ isModerator }),
+  setMeetingId: (meetingId: string) => set({ meetingId }),
+  meetingId: '',
+}));
