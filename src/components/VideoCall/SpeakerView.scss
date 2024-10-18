@@ -23,3 +23,56 @@
   max-height: 100dvh;
   max-width: 100dvw;
 }
+
+.chat-sidebar {
+  height: calc(100vh - 86px);
+  overflow: hidden;
+  transition: width 0.3s ease-out;
+}
+
+@media screen and (max-width: 768px) {
+  .chat-sidebar {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 100%;
+    z-index: 10;
+  }
+}
+
+.str-chat__channel {
+  width: 100%;
+  padding-bottom: 22px;
+}
+
+.sidebar-container {
+  right: 0;
+  top: 0;
+  height: calc(100dvh - 86px);
+  margin-top: -100px;
+  margin-right: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+}
+
+.sidebar-container.mobile {
+  width: 100%;
+  height: 100dvh;
+  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+.sidebar-container.hidden {
+  background-color: transparent;
+}
+
+@media screen and (max-width: 700px) {
+  .sidebar-container {
+    position: absolute;
+    bottom: 86px;
+    top: auto;
+  }
+}
