@@ -67,10 +67,10 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
     const initializeChannel = async () => {
       if (!chatClient || !call || !meetingId) return;
       try{
-        const channel = chatClient.channel("call", meetingId);
+        const channel = chatClient.channel("messaging", meetingId);
         setActiveChannel(channel as any);
       } catch (error) {
-        const newChannel = chatClient.channel('call', meetingId);
+        const newChannel = chatClient.channel('messaging', meetingId);
         await newChannel.create();
         setActiveChannel(newChannel as any);
       }
