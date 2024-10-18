@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  CallControls,
   CallingState,
   useCallStateHooks,
   useCall,
@@ -8,6 +7,13 @@ import {
   SpeakerLayout,
   CallParticipantsList,
   CallStatsButton,
+  CallControlsProps,
+  SpeakingWhileMutedNotification,
+  ToggleAudioPublishingButton,
+  ReactionsButton,
+  RecordCallButton,
+  ToggleVideoPublishingButton,
+  CancelCallButton,
 } from '@stream-io/video-react-sdk';
 import {
   Chat,
@@ -45,8 +51,7 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const call = useCall();
-  const { name: userName, token, apiKey, isModerator, meetingId } = useUserStore();
-
+  const { name: userName, token, apiKey, meetingId, isModerator } = useUserStore();
   const chatClient = useCreateChatClient({
     apiKey: apiKey,
     userData: { 
@@ -141,8 +146,13 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
 
       <div className="fixed bottom-0 flex w-full items-center justify-center gap-2">
         <div className="control_wrapper flex w-full justify-center items-center">
-          <CallControls onLeave={() => router.push("/")} />
-          <DropdownMenu>
+          {!isModerator && (<button onClick={toggleChat}>
+              <div className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b]">
+                <MessageSquare size={20} className="text-white" />
+              </div>
+            </button>)}
+          <CallControls isModerator={isModerator} onLeave={() => router.push("/")} />
+          {isModerator && <DropdownMenu>
             <DropdownMenuTrigger className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b] ml-2">
               <MoreHorizontal size={20} className="text-white" />
             </DropdownMenuTrigger>
@@ -182,7 +192,7 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
                 <EndCallButton />
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu>}
           {isModerator && <div className="ml-2">
             <CallStatsButton />
           </div>}
@@ -191,3 +201,15 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
     </section>
   );
 };
+
+const CallControls = ({ onLeave, isModerator }: CallControlsProps & { isModerator: boolean }) => (
+  <div className="str-video__call-controls">
+    <SpeakingWhileMutedNotification>
+      <ToggleAudioPublishingButton />
+    </SpeakingWhileMutedNotification>
+    <ReactionsButton />
+    {isModerator && <RecordCallButton />}
+    <ToggleVideoPublishingButton />
+    <CancelCallButton onLeave={onLeave} />
+  </div>
+);
