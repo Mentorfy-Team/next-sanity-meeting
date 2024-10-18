@@ -10,6 +10,10 @@ interface UserState {
   setApiKey: (apiKey: string) => void;
   token: string;
   apiKey: string;
+  isModerator: boolean;
+  setIsModerator: (isModerator: boolean) => void;
+  setMeetingId: (meetingId: string) => void;
+  meetingId: string;
 }
 
 const generateRandomId = () => Math.floor(Math.random() * 1000000).toString();
@@ -24,6 +28,10 @@ export const useUserStore = create<UserState>()(
       setApiKey: (apiKey: string) => set({ apiKey }),
       token: '',
       apiKey: '',
+      isModerator: false,
+      setIsModerator: (isModerator: boolean) => set({ isModerator }),
+      setMeetingId: (meetingId: string) => set({ meetingId }),
+      meetingId: '',
     }),
     {
       name: 'user-storage',

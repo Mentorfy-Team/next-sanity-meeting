@@ -27,11 +27,12 @@ export default function Project({ params: { meetingID } }: Props) {
   const route = useRouter();
   const searchParams = useSearchParams();
   const ref = searchParams?.get('ref') || '';
-
+  const isModerator = searchParams?.get('moderator') === 'true';
+  const { setIsModerator } = useUserStore();
   const { data: room, isLoading } = trpc.meeting.getRoom.useQuery({ meetingID });
   const { data: userFromQuery } = trpc.meeting.getSession.useQuery({ ref });
 
-  const { id: userId, name: userName, setName } = useUserStore();
+  const { id: userId, name: userName, setName, setMeetingId } = useUserStore();
 
   const loadUser = useCallback(async () => {
     if (userFromQuery?.first_name) {
@@ -42,6 +43,15 @@ export default function Project({ params: { meetingID } }: Props) {
   useEffect(() => {
     loadUser();
   }, [loadUser]);
+
+  useEffect(() => {
+    if (isModerator) {
+      setIsModerator(true);
+    }
+    if (meetingID) {
+      setMeetingId(meetingID);
+    }
+  }, [isModerator, room, meetingID]);
 
   const formSchema = z.object({
     name: z.string().min(2, {
