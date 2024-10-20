@@ -10,6 +10,8 @@ import { SupabaseAdmin } from "../../utils/supabase";
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/@types/supabase/v2.types";
 import createToken from "./createToken";
+import { StreamCall, StreamClient } from "@stream-io/node-sdk";
+import { VideoApi } from "@stream-io/node-sdk/dist/src/gen/video/VideoApi";
 
 export const meetingRouter = createTRPCRouter({
   checkPW: handleCheckPW(),
@@ -20,6 +22,7 @@ export const meetingRouter = createTRPCRouter({
   getSession: handleGetSession(),
   getMeetingInfo: handleGetMeetingInfo(),
   getRecordings: handleGetRecordings(),
+  getRecordingsV2: handleGetRecordingsV2(),
   createWebhook: handleCreateWebhook(),
   removeWebhook: handleRemoveWebhook(),
   listWebhooks: handleListWebhooks(),
@@ -245,6 +248,57 @@ function handleCreateRoom() {
     });
 }
 
+function handleGetRecordingsV2() {
+  return publicProcedure
+    .meta({ /* 👉 */ openapi: { method: "GET", path: "/recordings-v2" } })
+    .input(z.object({
+      meetingID: z.string().optional(),
+      recordID: z.string().optional(),
+      userId: z.string().optional(),
+      offset: z.number().optional(),
+      limit: z.number().optional(),
+    }))
+    .output(z.object({
+      returncode: z.string().optional(),
+      recordings: z.any(),
+    }))
+    .mutation(async ({ input: { meetingID, recordID, userId, offset, limit } }) => {
+      if(!meetingID && !userId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Meeting ID or User ID is required",
+        });
+      }
+      
+      const { data: meetings } = await SupabaseAdmin()
+        .from('meeting')
+        .select('friendly_id')
+        .or(`owner_id.eq.${userId??''},friendly_id.eq.${meetingID??''}`);
+
+      const meetingsList = [];
+
+      const chunkSize = 25;
+      const meetingsChunks = [];
+      for (let i = 0; i < (meetings?.length ?? 0); i += chunkSize) {
+        meetingsChunks.push(meetings?.slice(i, i + chunkSize) ?? []);
+      }
+
+      for (const chunk of meetingsChunks) {
+        const chunkPromises = chunk.map(meeting => 
+          getRecordingV2(meeting.friendly_id!).then(records => ({
+            meetingID: meeting.friendly_id!,
+            recordings: records,
+          }))
+        );
+        const chunkResults = await Promise.all(chunkPromises);
+        meetingsList.push(...chunkResults);
+      }
+
+      return {
+        recordings: meetingsList,
+      };
+    });
+}
 function handleGetRecordings() {
   return publicProcedure
     .meta({ /* 👉 */ openapi: { method: "GET", path: "/recordings" } })
@@ -581,6 +635,23 @@ function handleGetMeetingInfo(): any {
 
       return response;
     });
+}
+
+async function getRecordingV2(meetingID: string){
+  if(!meetingID) return [];
+  const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY!;
+  const client = new StreamClient(apiKey, process.env.STREAM_SECRET_KEY!);
+
+  try{
+    const call = client.video.call('default', meetingID);
+  
+    const recordings = await call.listRecordings();
+
+    return recordings?.recordings ?? [];
+  } catch(error){
+    console.error(error);
+    return [];
+  }
 }
 
 function convertXmlToObject(xmlString: string) {
