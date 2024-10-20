@@ -160,10 +160,10 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({ name: userName, token,
                 <Users size={20} className="inline-block mr-2" />
                 Participantes
               </DropdownMenuItem>
-              {/* <DropdownMenuItem onClick={toggleChat}>
+              <DropdownMenuItem onClick={toggleChat}>
                 <MessageSquare size={20} className="inline-block mr-2" />
                 Chat
-              </DropdownMenuItem> */}
+              </DropdownMenuItem>
               <DropdownMenuItem>
                 <EndCallButton />
               </DropdownMenuItem>
