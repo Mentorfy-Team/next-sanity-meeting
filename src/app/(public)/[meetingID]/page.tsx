@@ -28,11 +28,11 @@ export default function Project({ params: { meetingID } }: Props) {
   const searchParams = useSearchParams();
   const ref = searchParams?.get('ref') || '';
   const isModerator = searchParams?.get('moderator') === 'true';
-  const { setIsModerator } = useUserStore();
+  
   const { data: room, isLoading } = trpc.meeting.getRoom.useQuery({ meetingID });
   const { data: userFromQuery } = trpc.meeting.getSession.useQuery({ ref });
 
-  const { id: userId, name: userName, setName, setMeetingId } = useUserStore();
+  const { name: userName, setName, setMeetingId, setIsModerator } = useUserStore();
 
   const loadUser = useCallback(async () => {
     if (userFromQuery?.first_name) {
@@ -71,6 +71,13 @@ export default function Project({ params: { meetingID } }: Props) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setName(values.name);
+    // fetch to check, case password is used, to join as moderator or not
+    if (values.password) {
+      const { data: checkPW } = trpc.meeting.checkPW.useQuery({ meetingID, password: values.password });
+      if (checkPW) {
+        setIsModerator(true);
+      }
+    }
     route.push(`/${meetingID}/room`);
   }
 

@@ -12,6 +12,7 @@ import { Database } from "@/@types/supabase/v2.types";
 import createToken from "./createToken";
 
 export const meetingRouter = createTRPCRouter({
+  checkPW: handleCheckPW(),
   createRoom: handleCreateRoom(),
   joinAsModerator: handleJoinAsModerator(),
   joinAsAttendee: handleJoinAsAttendee(),
@@ -24,6 +25,21 @@ export const meetingRouter = createTRPCRouter({
   listWebhooks: handleListWebhooks(),
   createToken: handleCreateToken(),
 });
+
+function handleCheckPW() {
+  return publicProcedure
+    .meta({ /* 👉 */ openapi: { method: "POST", path: "/check-pw" } })
+    .input(z.object({ meetingID: z.string(), password: z.string() }))
+    .output(z.boolean())
+    .query(async ({ input: { meetingID, password } }) => {
+      const { data: meeting } = await SupabaseAdmin()
+        .from("meeting")
+        .select("*")
+        .eq("friendly_id", meetingID)
+        .maybeSingle();
+      return (meeting?.configs as any)?.moderatorPW === password;
+    });
+}
 
 function handleCreateToken() {
   return publicProcedure
