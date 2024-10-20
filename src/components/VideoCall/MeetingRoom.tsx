@@ -24,6 +24,8 @@ import {
   MessageInput,
   Thread,
   useCreateChatClient,
+  ChannelStateContext,
+  useChannelStateContext,
 } from 'stream-chat-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Loader from './Loader';
@@ -37,48 +39,28 @@ import "./SpeakerView.scss"
 import { useUserStore } from '@/hooks/userStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useCreateStreamChatClient } from '@/hooks/useChatClient';
+import { ChatUI } from '../organisms/ChatUI';
 
 interface MeetingRoomProps {
+  name: string;
+  token: string;
+  apiKey: string;
+  meetingId: string;
+  isModerator: boolean;
+  id: string;
 }
 type CallLayoutType = "grid" | "speaker-left" | "speaker-right" | "speaker-top" | "speaker-bottom";
 
-export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
+export const MeetingRoom: React.FC<MeetingRoomProps> = ({ name: userName, token, apiKey, meetingId, isModerator, id: userId }) => {
   const [layout, setLayout] = useState<CallLayoutType>("grid");
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const router = useRouter();
   const isMobile = useMediaQuery('(max-width: 700px)');
-
-  const { useCallCallingState } = useCallStateHooks();
+  
+  const { useCallCallingState, useCallSettings } = useCallStateHooks();
   const callingState = useCallCallingState();
-  const call = useCall();
-  const { name: userName, token, apiKey, meetingId, isModerator } = useUserStore();
-  const chatClient = useCreateStreamChatClient({
-    apiKey: apiKey,
-    userData: { 
-      id: call?.currentUserId || '', 
-      name: userName,
-    },
-    tokenOrProvider: token,
-  });
-
-  const [activeChannel, setActiveChannel] = useState(null);
-
-  useEffect(() => {
-    const initializeChannel = async () => {
-      if (!chatClient || !call || !meetingId) return;
-      try{
-        const channel = chatClient.channel("messaging", meetingId);
-        setActiveChannel(channel as any);
-      } catch (error) {
-        const newChannel = chatClient.channel('messaging', meetingId);
-        await newChannel.create();
-        setActiveChannel(newChannel as any);
-      }
-    };
-
-    initializeChannel();
-  }, [chatClient, call, isModerator]);
+  const settings = useCallSettings();
 
   if (callingState !== CallingState.JOINED) return <Loader />;
 
@@ -128,18 +110,11 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
               <CallParticipantsList onClose={() => setShowParticipants(false)} />
             </div>
           )}
-          {showChat && chatClient && activeChannel && (
+          {showChat && (
             <div className="h-full w-full">
-              <Chat client={chatClient}>
-                <Channel>
-                  <Window>
-                    <ChannelHeader />
-                    <MessageList />
-                    <MessageInput disabled={false} />
-                  </Window>
-                  <Thread />
-                </Channel>
-              </Chat>
+              <ChatUI meetingId={meetingId} 
+                disabledSend={false} 
+              />
             </div>
           )}
         </div>}
@@ -147,11 +122,11 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
 
       <div className="fixed bottom-0 flex w-full items-center justify-center gap-2">
         <div className="control_wrapper flex w-full justify-center items-center">
-          {/* {!isModerator && (<button onClick={toggleChat}>
-              <div className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b]">
+          {!isModerator && (<button onClick={toggleChat}>
+              <div className="cursor-pointer mr-4 rounded-full bg-[#19232d] px-2 py-2 hover:bg-[#4c535b]">
                 <MessageSquare size={20} className="text-white" />
               </div>
-            </button>)} */}
+            </button>)}
           <CallControls isModerator={isModerator} onLeave={() => router.push("/")} />
           {isModerator && <DropdownMenu>
             <DropdownMenuTrigger className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b] ml-2">
@@ -205,10 +180,10 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = () => {
 
 const CallControls = ({ onLeave, isModerator }: CallControlsProps & { isModerator: boolean }) => (
   <div className="str-video__call-controls">
+    <ReactionsButton />
     <SpeakingWhileMutedNotification>
       <ToggleAudioPublishingButton />
     </SpeakingWhileMutedNotification>
-    <ReactionsButton />
     {isModerator && <RecordCallButton />}
     <ToggleVideoPublishingButton />
     <CancelCallButton onLeave={onLeave} />

@@ -10,13 +10,13 @@ const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
 const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
-  const { id: userId, name: userName, setToken, setApiKey } = useUserStore();
+  const { id: userId, name: userName, setToken, setApiKey, isModerator } = useUserStore();
 
   useEffect(() => {
     const init = async () => {
       if (!userName || !userId) return;
       if (!apiKey) throw new Error("Stream API key is missing");
-      const token = await tokenProvider(userId);
+      const token = await tokenProvider(userId, isModerator);
 
       const client = new StreamVideoClient({
         apiKey,

@@ -2,17 +2,23 @@
   max-width: 98dvw;
 }
 
-.str-video__call-controls {
-  gap: 10px;
-}
+// .str-video__call-controls {
+//   gap: 10px;
+// }
 
 .str-video__call-controls__button {
   padding: 10px;
 }
 
-.str-video__composite-button__button {
-  padding: 12px !important;
+// .str-video__composite-button__button {
+//   padding: 12px !important;
+// }
+
+.str-video__menu-toggle-button {
+  padding-left: 12px;
+  padding-right: 12px;
 }
+
 
 .room-container {
   max-height: 100dvh;
@@ -59,7 +65,7 @@
 
 .sidebar-container.mobile {
   width: 97%;
-  height: 50dvh;
+  max-height: 89.8dvh;
   background-color: rgba(0, 0, 0, 0.9);
 }
 
@@ -77,4 +83,42 @@
 
 .control_wrapper {
   z-index: 50;
+}
+
+.str-video__call-controls__button.str-video__menu-toggle-button {
+  height: auto;
+  padding: 4px !important;
+}
+
+.str-video__participant-list {
+ background-color: rgb(247, 247, 247);
+ color: black;
+
+ button {
+  color: black;
+  background-color: #747474;
+ }
+}
+
+.str-video__participant-listing-item .str-video__call-controls__button {
+  padding:5px !important;
+  width: 30px;
+  height: 30px;
+}
+
+.str-video__participant-list-header__close-button {
+  padding: 8px !important;
+  height: 30px;
+  width: 30px;
+}
+
+
+.str-video__search-input__container {
+  background-color: rgb(224, 224, 224);
+
+  * {
+    &::placeholder {
+      color: #666 !important;
+    }
+  }
 }

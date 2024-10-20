@@ -5,7 +5,7 @@ import { StreamClient } from "@stream-io/node-sdk";
 const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 const apiSecret = process.env.STREAM_SECRET_KEY;
 
-export const tokenProvider = async (userId: string) => {
+export const tokenProvider = async (userId: string, isModerator: boolean) => {
   if (!userId) throw new Error("User is not logged in");
   if (!apiKey) throw new Error("No API key");
   if (!apiSecret) throw new Error("No API secret");
@@ -23,6 +23,15 @@ export const tokenProvider = async (userId: string) => {
     validity_in_seconds,
     exp,
     issued,
+  });
+
+  client.updateUsers({
+    users: {
+      [userId]: {
+        id: userId,
+        role: isModerator ? "moderator" : "user",
+      },
+    },
   });
   
   return token;

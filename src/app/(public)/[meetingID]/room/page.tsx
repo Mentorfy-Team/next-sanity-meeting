@@ -16,16 +16,17 @@ import { useUserStore } from '@/hooks/userStore';
 export default function VideoCallPage({ params: { meetingID } }: { params: { meetingID: string } }) {
   const { call, isCallLoading } = useGetCallById(meetingID);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
-  const { id: userId } = useUserStore();
+  const { name: userName, token, apiKey, meetingId, isModerator, id: userId } = useUserStore();
+
   
-  if (!userId || isCallLoading) return <Loader />;
+  if (!userId || !userName || !token || !apiKey || !meetingId || isCallLoading) return <Loader />;
 
   return (
       <StreamCall call={call}>
         {!isSetupComplete ? (
             <MeetingSetup setIsSetupComplete={setIsSetupComplete} />
           ) : (
-            <MeetingRoom />
+            <MeetingRoom name={userName} token={token} apiKey={apiKey} meetingId={meetingId} isModerator={isModerator} id={userId} />
           )}
       </StreamCall>
   );
