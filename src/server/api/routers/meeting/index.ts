@@ -270,10 +270,21 @@ function handleGetRecordingsV2() {
         });
       }
       
-      const { data: meetings } = await SupabaseAdmin()
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 60);
+      
+      const { data: meetings, error } = await SupabaseAdmin()
         .from('meeting')
         .select('friendly_id')
-        .or(`owner_id.eq.${userId??''},friendly_id.eq.${meetingID??''}`);
+        .or(`owner_id.eq.${userId??''},friendly_id.eq.${meetingID??''}`)
+        .gte('date_created', thirtyDaysAgo.toISOString());
+
+      if(error) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: error.message,
+        });
+      }
 
       const meetingsList = [];
 
