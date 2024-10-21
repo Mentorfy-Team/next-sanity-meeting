@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface UserState {
+  id: string;
   name: string;
   email: string;
   setName: (name: string) => void;
