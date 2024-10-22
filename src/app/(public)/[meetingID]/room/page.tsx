@@ -1,12 +1,8 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Call,
   StreamCall,
-  StreamVideo,
-  StreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { Lobby } from '@/components/VideoCall/Lobby';
 import { MeetingRoom } from '@/components/VideoCall/MeetingRoom';
 import { useGetCallById } from '@/hooks/useGetCallById';
 import MeetingSetup from '@/components/VideoCall/MeetingSetup';
@@ -17,7 +13,6 @@ export default function VideoCallPage({ params: { meetingID } }: { params: { mee
   const { call, isCallLoading } = useGetCallById(meetingID);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
   const { name: userName, token, apiKey, meetingId, isModerator, id: userId } = useUserStore();
-
   
   if (!userId || !userName || !token || !apiKey || !meetingId || isCallLoading) return <Loader />;
 

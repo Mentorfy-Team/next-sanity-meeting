@@ -5,12 +5,21 @@ import { useUserStore } from "@/hooks/userStore";
 import { StreamVideoClient, StreamVideo, StreamTheme } from "@stream-io/video-react-sdk";
 import { ReactNode, useEffect, useState } from "react";
 import { tokenProvider } from "@/actions/stream.action";
+import { useRouter } from "next/navigation";
 
 const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
-const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
+const StreamVideoProvider = ({ children, params: { meetingID } }: { children: ReactNode, params: { meetingID: string } }) => {
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
   const { id: userId, name: userName, setToken, setApiKey, isModerator } = useUserStore();
+
+  const router = useRouter();
+
+  if (!userName || !userId) {
+    router.push(`/${meetingID}`);
+  } else if (!meetingID) {
+    router.push('/');
+  }
 
   useEffect(() => {
     const init = async () => {
@@ -72,6 +81,32 @@ const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
       'Screen sharing on': 'Compartilhamento de tela ligado',
       'Screen sharing off': 'Compartilhamento de tela desligado',
       'Screen sharing': 'Compartilhamento de tela',
+      'Record call': 'Gravar chamada',
+      'Leave call': 'Sair da chamada',
+      'Statistics': 'Estatísticas',
+      'Call Latency': 'Latência da chamada',
+      'Very high latency values may reduce call quality, cause lag, and make the call less enjoyable.': 'Valores de latência muito altos podem reduzir a qualidade da chamada, causar atrasos e tornar a chamada menos agradável.',
+      'Call performance': 'Desempenho da chamada',
+      'Review the key data points below to assess call performance': 'Revise os pontos de dados principais abaixo para avaliar o desempenho da chamada',
+      'Region': 'Região',
+      'Latency': 'Latência',
+      'Receive jitter': 'Jitter de recebimento',
+      'Publish jitter': 'Jitter de publicação',
+      'Good': 'Bom',
+      'Poor': 'Ruim',
+      'Average': 'Médio',
+      'High': 'Alto',
+      'Low': 'Baixo',
+      'Publish resolution': 'Resolução de publicação',
+      'Publish quality drop reason': 'Motivo da queda de qualidade na publicação',
+      'none': 'nenhum',
+      'Receiving resolution': 'Resolução de recebimento',
+      'Receive quality drop reason': 'Motivo da queda de qualidade no recebimento',
+      'Publish bitrate': 'Taxa de bits de publicação',
+      'Receiving bitrate': 'Taxa de bits de recebimento',
+      '{{ direction }} fullscreen': 'Tela cheia',
+      '{{ direction }} picture-in-picture': 'picture-in-picture',
+      'Turn off screen share': 'Desativar compartilhamento de tela',
     },
   };
 

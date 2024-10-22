@@ -8,10 +8,10 @@ export const metadata: Metadata = {
   icons: "/icons/logo-icon.png",
 };
 
-const RootLayout = ({ children }: Readonly<{ children: ReactNode }>) => {
+const RootLayout = ({ children, ...rest }: Readonly<{ children: ReactNode }>) => {
   return (
     <main>
-      <StreamVideoProvider>{children}</StreamVideoProvider>
+      <StreamVideoProvider {...rest}>{children}</StreamVideoProvider>
     </main>
   );
 };

@@ -98,7 +98,11 @@
 }
 
 .str-video__speaker-layout__wrapper {
-  max-height: 700px;
+  /* max-height: 700px; */
+}
+
+.str-video__call-stats__card-container > .str-video__call-stats__card:first-child {
+  opacity: 0;
 }
 
 .str-video__participant-details {
@@ -198,6 +202,25 @@
   }
 }
 
+.str-video__menu-container {
+  border-radius: 6px !important;
+  padding: 4px 0;
+  background-color: #141414 !important;
+  border: 1px solid #444444;
+}
+
+.str-video__generic-menu {
+  padding: 4px !important;
+}
+
+.str-video__generic-menu .str-video__generic-menu--item button {
+  background-color: #141414 !important;
+
+  &:hover {
+    background-color: #1f1f1f !important;
+    border-radius: 4px !important;
+  }
+}
 
 
 /*# sourceMappingURL=styles.css.map */

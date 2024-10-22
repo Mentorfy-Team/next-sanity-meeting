@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { createClient, RealtimeChannel } from '@supabase/supabase-js';
+import { createClient, type RealtimeChannel } from '@supabase/supabase-js';
 import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { X, Send } from 'lucide-react';
 import { useUserStore } from '@/hooks/userStore';
 
-export function ChatUI({ meetingId, disabledSend, shouldFixMessage }: { meetingId: string, disabledSend: boolean, shouldFixMessage?: string }) {
+export function ChatUI({ meetingId, disabledSend, shouldFixMessage, onClose }: { meetingId: string, disabledSend: boolean, shouldFixMessage?: string, onClose: () => void }) {
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<{ user: string; message: string; isFixed: boolean }[]>([]);
   const [allowAllMessages, setAllowAllMessages] = useState<boolean>(true);
@@ -66,7 +66,7 @@ export function ChatUI({ meetingId, disabledSend, shouldFixMessage }: { meetingI
     <div className="w-full max-w-2xl bg-white text-black p-4 rounded-lg shadow-lg h-full flex flex-col">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Mensagens na chamada</h2>
-        <button className="text-gray-500 hover:text-gray-700">
+        <button type="button" className="text-gray-500 hover:text-gray-700" onClick={() => onClose()}>
           <X size={24} />
         </button>
       </div>
@@ -133,6 +133,7 @@ export function ChatUI({ meetingId, disabledSend, shouldFixMessage }: { meetingI
             disabled={disabledSend || (!isModerator && !allowAllMessages)}
           />
           <button 
+            type="button"
             onClick={onSend} 
             className={`ml-2 text-gray-500 hover:text-gray-700 ${(disabledSend || (!isModerator && !allowAllMessages)) ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={disabledSend || (!isModerator && !allowAllMessages)}
