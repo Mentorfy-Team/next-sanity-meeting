@@ -36,6 +36,7 @@
     "@react-native-async-storage/async-storage": "^1.21.0",
     "@sanity/ui": "^1.8.2",
     "@stream-io/node-sdk": "^0.4.4",
+    "@stream-io/video-filters-web": "^0.1.4",
     "@stream-io/video-react-sdk": "^1.7.2",
     "@stream-io/video-styling": "^1.1.1",
     "@supabase/auth-helpers-nextjs": "^0.7.4",
