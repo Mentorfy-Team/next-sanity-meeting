@@ -31,7 +31,6 @@ import EndCallButton from "./EndCallButton";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import "stream-chat-react/dist/css/v2/index.css";
 import "./SpeakerView.scss";
-import "./SpotlightLayout.scss";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { ChatUI } from "../organisms/ChatUI";
 
