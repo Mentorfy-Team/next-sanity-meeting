@@ -2,11 +2,13 @@
 
 import {
   DeviceSettings,
+  MenuVisualType,
   VideoPreview,
   useCall,
 } from "@stream-io/video-react-sdk";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { VideoEffectsButton } from "./MeetingRoom";
 const MeetingSetup = ({
   setIsSetupComplete,
 }: {
@@ -44,6 +46,7 @@ const MeetingSetup = ({
           Entrar com o microfone e câmera desligados
         </label>
         <DeviceSettings />
+        <VideoEffectsButton />
       </div>
       <Button
         className="rounded-md bg-green-500 px-4 py-2.5"

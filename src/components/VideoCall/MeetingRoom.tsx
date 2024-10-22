@@ -14,8 +14,8 @@ import {
 	ToggleVideoPublishingButton,
 	CancelCallButton,
 	ScreenShareButton,
-  ParticipantView,
-  SpeakerLayout,
+	ParticipantView,
+	SpeakerLayout,
 } from "@stream-io/video-react-sdk";
 import { useRouter } from "next/navigation";
 import Loader from "./Loader";
@@ -26,13 +26,17 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { LayoutList, Users, MessageSquare, MoreHorizontal } from "lucide-react";
+import { LayoutList, Users, MessageSquare, MoreHorizontal, Image } from "lucide-react";
 import EndCallButton from "./EndCallButton";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import "stream-chat-react/dist/css/v2/index.css";
 import "./SpeakerView.scss";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { ChatUI } from "../organisms/ChatUI";
+import { Settings } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
+import { VideoEffectsSettings } from "./VideoEffects";
+import { usePersistedVideoFilter } from "@/hooks/usePersistedVideoFilter";
 
 interface MeetingRoomProps {
 	name: string;
@@ -64,10 +68,10 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 
   const { useParticipants } = useCallStateHooks();
   const allParticipants = useParticipants();
-  const screenShareState = useScreenShareState();
+  usePersistedVideoFilter('video-filter');
   
   const participantWithScreenShare = useMemo(() => allParticipants.find(participant => participant.screenShareStream?.active), [allParticipants]);
-  console.log(screenShareState);
+
 	const CallLayout = useCallback(() => {
 		switch (layout) {
 			case "grid":
@@ -254,6 +258,22 @@ const CallControls = ({
 		{isModerator && <RecordCallButton />}
 		<ScreenShareButton />
 		<ToggleVideoPublishingButton />
+		<VideoEffectsButton />
 		<CancelCallButton onLeave={onLeave} />
 	</div>
 );
+
+export const VideoEffectsButton = () => {
+	return (
+		<Dialog>
+			<DialogTrigger asChild>
+				<button className="bg-[#19232d] w-9 h-9 rounded-full items-center justify-center hover:bg-[#323b44] flex" type="button" title="Efeitos de Vídeo">
+					<Image size={18} />
+				</button>
+			</DialogTrigger>
+			<DialogContent className="bg-neutral-900 text-white border-dark-1 video-modal-content">
+				<VideoEffectsSettings />
+			</DialogContent>
+		</Dialog>
+	);
+};

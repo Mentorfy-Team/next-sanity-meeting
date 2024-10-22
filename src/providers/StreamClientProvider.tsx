@@ -2,8 +2,8 @@
 
 import Loader from "@/components/VideoCall/Loader";
 import { useUserStore } from "@/hooks/userStore";
-import { StreamVideoClient, StreamVideo, StreamTheme } from "@stream-io/video-react-sdk";
-import { ReactNode, useEffect, useState } from "react";
+import { StreamVideoClient, StreamVideo, StreamTheme, BackgroundFiltersProvider } from "@stream-io/video-react-sdk";
+import { type ReactNode, useEffect, useState } from "react";
 import { tokenProvider } from "@/actions/stream.action";
 import { useRouter } from "next/navigation";
 
@@ -15,12 +15,15 @@ const StreamVideoProvider = ({ children, params: { meetingID } }: { children: Re
 
   const router = useRouter();
 
-  if (!userName || !userId) {
-    router.push(`/${meetingID}`);
-  } else if (!meetingID) {
-    router.push('/');
-  }
+  useEffect(() => {
+    if (!userName || !userId) {
+      router.push(`/${meetingID}`);
+    } else if (!meetingID) {
+      router.push('/');
+    }
+  }, [userName, userId, meetingID, router]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     const init = async () => {
       if (!userName || !userId) return;
@@ -111,6 +114,8 @@ const StreamVideoProvider = ({ children, params: { meetingID } }: { children: Re
   };
 
   if (!videoClient) return <Loader />;
+  
+
   return (
     <StreamTheme>
       <StreamVideo 
