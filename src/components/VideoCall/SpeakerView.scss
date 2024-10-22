@@ -233,3 +233,7 @@
   border-radius: 20px;
   border: transparent;
 }
+
+.control-button {
+  @apply bg-[#19232d] w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#323b44] text-white transition-colors;
+}

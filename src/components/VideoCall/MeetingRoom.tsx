@@ -176,70 +176,59 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 				)}
 			</div>
 
-			<div className="fixed bottom-0 flex w-full items-center justify-center gap-2">
-				<div className="control_wrapper flex w-full justify-center items-center">
-					{!isModerator && (
-						<button type="button" onClick={toggleChat}>
-							<div className="cursor-pointer mr-4 rounded-full bg-[#19232d] px-2 py-2 hover:bg-[#4c535b]">
-								<MessageSquare size={20} className="text-white" />
-							</div>
-						</button>
-					)}
+			<div className="fixed bottom-4 left-0 right-0 flex justify-center">
+				<div className="flex flex-wrap items-center justify-center gap-2 px-4 py-2 bg-neutral-900 bg-opacity-80 rounded-full">
 					<CallControls
 						isModerator={isModerator}
 						onLeave={() => router.push("/")}
 					/>
-					{isModerator && (
-						<DropdownMenu>
-							<DropdownMenuTrigger className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b] ml-2">
-								<MoreHorizontal size={20} className="text-white" />
-							</DropdownMenuTrigger>
-							<DropdownMenuContent className="border-dark-1 bg-neutral-900 text-white">
-								<DropdownMenuItem onClick={toggleParticipants}>
-									<Users size={20} className="inline-block mr-2" />
-									Participantes
-								</DropdownMenuItem>
-								<DropdownMenuItem onClick={toggleChat}>
-									<MessageSquare size={20} className="inline-block mr-2" />
-									Chat
-								</DropdownMenuItem>
-								<DropdownMenuItem>
-									<EndCallButton />
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
+					
+					{!isModerator && (
+						<button type="button" onClick={toggleChat} className="control-button">
+							<MessageSquare size={20} />
+						</button>
 					)}
+					
 					{isModerator && (
-						<div className="ml-2">
-							<CallStatsButton />
-						</div>
-					)}
-					<div className="ml-2">
-						<DropdownMenu>
-							<DropdownMenuTrigger className="bg-[#19232d] w-9 h-9 rounded-full items-center justify-center hover:bg-[#323b44]">
-								<LayoutList size={16} className="inline-block mb-1" />
-							</DropdownMenuTrigger>
-							<DropdownMenuContent className="border-dark-1 bg-neutral-900 text-white">
-								{[
-									"Grid",
-									"Speaker-Left",
-									"Speaker-Right",
-									"Speaker-Top",
-									"Speaker-Bottom",
-								].map((item, index) => (
-									<DropdownMenuItem
-										key={item}
-										className="cursor-pointer"
-										onClick={() =>
-											setLayout(item.toLowerCase() as CallLayoutType)
-										}
-									>
-										{item}
+						<>
+							<DropdownMenu>
+								<DropdownMenuTrigger className="control-button">
+									<MoreHorizontal size={20} />
+								</DropdownMenuTrigger>
+								<DropdownMenuContent className="border-dark-1 bg-neutral-900 text-white">
+									<DropdownMenuItem onClick={toggleParticipants}>
+										<Users size={20} className="mr-2" />
+										Participantes
 									</DropdownMenuItem>
-								))}
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
+									<DropdownMenuItem onClick={toggleChat}>
+										<MessageSquare size={20} className="mr-2" />
+										Chat
+									</DropdownMenuItem>
+									<DropdownMenuItem>
+										<EndCallButton />
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
+							
+							<CallStatsButton />
+						</>
+					)}
+					
+					<DropdownMenu>
+						<DropdownMenuTrigger className="control-button">
+							<LayoutList size={20} />
+						</DropdownMenuTrigger>
+						<DropdownMenuContent className="border-dark-1 bg-neutral-900 text-white">
+							{["Grid", "Speaker-Left", "Speaker-Right", "Speaker-Top", "Speaker-Bottom"].map((item) => (
+								<DropdownMenuItem
+									key={item}
+									onClick={() => setLayout(item.toLowerCase() as CallLayoutType)}
+								>
+									{item}
+								</DropdownMenuItem>
+							))}
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</div>
 			</div>
 		</section>
@@ -250,17 +239,17 @@ const CallControls = ({
 	onLeave,
 	isModerator,
 }: CallControlsProps & { isModerator: boolean }) => (
-	<div className="str-video__call-controls">
+	<>
 		<ReactionsButton />
 		<SpeakingWhileMutedNotification>
 			<ToggleAudioPublishingButton />
 		</SpeakingWhileMutedNotification>
 		{isModerator && <RecordCallButton />}
-		<ScreenShareButton />
 		<ToggleVideoPublishingButton />
+		<ScreenShareButton />
 		<VideoEffectsButton />
 		<CancelCallButton onLeave={onLeave} />
-	</div>
+	</>
 );
 
 export const VideoEffectsButton = () => {
