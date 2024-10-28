@@ -66,6 +66,7 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.45.4",
     "sanity": "^3.15.1",
+    "sass": "^1.80.4",
     "scss": "^0.2.4",
     "stream-chat": "^8.40.9",
     "stream-chat-react": "^12.2.1",
