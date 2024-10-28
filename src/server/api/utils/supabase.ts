@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 export const SupabaseAdmin = (req?) => {
   return createClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE!,
+    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE!,
     {
       auth: {
         persistSession: false,
@@ -17,7 +17,7 @@ export const SupabaseAdmin = (req?) => {
 export const SupabaseAuthAdmin = (req?) => {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE!,
+    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE!,
     {
       db: {
         schema: 'auth',

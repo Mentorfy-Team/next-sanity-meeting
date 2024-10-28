@@ -1,22 +1,16 @@
 import { FeatureCard } from "@/components/organisms/FeatureCard";
 import { Button } from "@/components/ui/button";
-import { getProjects } from "@/sanity/sanity-utils";
-import { trpc } from "@/utils/trpc";
 import {
   ArrowRightIcon,
   CameraIcon,
   HomeIcon,
   VideoIcon,
 } from "@radix-ui/react-icons";
-import Image from "next/image";
-import Link from "next/link";
 import React from "react";
 
 export default async function Home() {
-  const projects = await getProjects();
-
   return (
-    <div>
+    <div className="max-w-screen-2xl mx-auto px-10">
       <div className="flex flex-col items-center">
         <span className="text-4xl">Bem-vindo ao</span>
         <h1 className="text-7xl font-extrabold">
