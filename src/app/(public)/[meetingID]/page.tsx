@@ -118,7 +118,7 @@ export default function Project({ params: { meetingID } }: Props) {
 
             <div className="flex flex-col w-[300px] gap-4 justify-center">
               <div className="mb-6">
-                <h2 className="text-3xl mb-2 text-center">{room?.room_name}</h2>
+                <h2 className="text-3xl mb-2 text-center">{room?.room_name || 'Sala de Reunião'}</h2>
                 {/* Numero de participantes */}
                 <p className="text-md text-center">{hasMeetingStarted()}</p>
               </div>
