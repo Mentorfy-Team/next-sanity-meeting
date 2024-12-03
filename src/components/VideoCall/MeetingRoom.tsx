@@ -17,7 +17,6 @@ import {
 	ParticipantView,
 	SpeakerLayout,
 } from "@stream-io/video-react-sdk";
-import { useRouter } from "next/navigation";
 import Loader from "./Loader";
 import { cn } from "@/lib/utils";
 import {
@@ -33,7 +32,6 @@ import "stream-chat-react/dist/css/v2/index.css";
 import "./SpeakerView.scss";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { ChatUI } from "../organisms/ChatUI";
-import { Settings } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { VideoEffectsSettings } from "./VideoEffects";
 import { usePersistedVideoFilter } from "@/hooks/usePersistedVideoFilter";
@@ -60,7 +58,6 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 	const [layout, setLayout] = useState<CallLayoutType>("speaker-top");
 	const [showParticipants, setShowParticipants] = useState(false);
 	const [showChat, setShowChat] = useState(false);
-	const router = useRouter();
 	const isMobile = useMediaQuery("(max-width: 700px)");
 
 	const { useCallCallingState, useScreenShareState } = useCallStateHooks();
@@ -180,7 +177,7 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 				<div className="flex flex-wrap items-center justify-center gap-2 px-4 py-2 bg-neutral-900 bg-opacity-80 rounded-full">
 					<CallControls
 						isModerator={isModerator}
-						onLeave={() => router.push("/")}
+						onLeave={() => window.close()}
 					/>
 					
 					{!isModerator && (
