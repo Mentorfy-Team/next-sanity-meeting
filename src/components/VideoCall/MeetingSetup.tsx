@@ -17,6 +17,7 @@ const MeetingSetup = ({
 }) => {
   const [isMicEnabled, setIsMicEnabled] = useState(true);
   const [isCameraEnabled, setIsCameraEnabled] = useState(true);
+  const [isJoining, setIsJoining] = useState(false);
 
   const call = useCall();
 
@@ -65,13 +66,21 @@ const MeetingSetup = ({
       </div>
       <Button
         className="rounded-md bg-green-500 px-4 py-2.5"
+        disabled={isJoining}
         onClick={async () => {
-          await call.getOrCreate();
-          call.join();
-          setIsSetupComplete(true);
+          try {
+            setIsJoining(true);
+            await call.getOrCreate();
+            call.join();
+            setIsSetupComplete(true);
+          } catch (error) {
+            console.error('Erro ao entrar na chamada:', error);
+          } finally {
+            setIsJoining(false);
+          }
         }}
       >
-        Entrar na chamada
+        {isJoining ? "Entrando..." : "Entrar na chamada"}
       </Button>
     </div>
   );
