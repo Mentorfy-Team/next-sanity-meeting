@@ -27,7 +27,7 @@ export const TranscriptionButton = () => {
   return (
     <button
       onClick={toggleTranscription}
-      className={`control-button ${isTranscribing ? "bg-primary-500" : ""}`}
+      className={`control-button ${isTranscribing ? "bg-primary/75" : ""}`}
       title={isTranscribing ? "Parar Transcrição" : "Iniciar Transcrição"}
       type="button"
     >
