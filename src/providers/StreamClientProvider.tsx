@@ -110,6 +110,7 @@ const StreamVideoProvider = ({ children, params: { meetingID } }: { children: Re
       '{{ direction }} fullscreen': 'Tela cheia',
       '{{ direction }} picture-in-picture': 'picture-in-picture',
       'Turn off screen share': 'Desativar compartilhamento de tela',
+      'Share screen': 'Compartilhar tela',
     },
   };
 

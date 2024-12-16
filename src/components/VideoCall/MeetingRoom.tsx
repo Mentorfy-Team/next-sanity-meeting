@@ -35,6 +35,7 @@ import { ChatUI } from "../organisms/ChatUI";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { VideoEffectsSettings } from "./VideoEffects";
 import { usePersistedVideoFilter } from "@/hooks/usePersistedVideoFilter";
+import { TranscriptionButton } from "./TranscriptionButton";
 
 interface MeetingRoomProps {
 	name: string;
@@ -216,12 +217,18 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 							<LayoutList size={20} />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent className="border-dark-1 bg-neutral-900 text-white">
-							{["Grid", "Speaker-Left", "Speaker-Right", "Speaker-Top", "Speaker-Bottom"].map((item) => (
+							{Object.entries({
+								'grid': 'Grade',
+								'speaker-left': 'Palestrante à Esquerda',
+								'speaker-right': 'Palestrante à Direita',
+								'speaker-top': 'Palestrante em Cima',
+								'speaker-bottom': 'Palestrante em Baixo'
+							}).map(([key, value]) => (
 								<DropdownMenuItem
-									key={item}
-									onClick={() => setLayout(item.toLowerCase() as CallLayoutType)}
+									key={key}
+									onClick={() => setLayout(key as CallLayoutType)}
 								>
-									{item}
+									{value}
 								</DropdownMenuItem>
 							))}
 						</DropdownMenuContent>
@@ -241,7 +248,12 @@ const CallControls = ({
 		<SpeakingWhileMutedNotification>
 			<ToggleAudioPublishingButton />
 		</SpeakingWhileMutedNotification>
-		{isModerator && <RecordCallButton />}
+		{isModerator && (
+		<>
+			<RecordCallButton />
+			<TranscriptionButton />
+		</>
+		)}
 		<ToggleVideoPublishingButton />
 		<ScreenShareButton />
 		<VideoEffectsButton />
