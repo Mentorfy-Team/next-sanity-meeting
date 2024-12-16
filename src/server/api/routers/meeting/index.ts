@@ -296,10 +296,12 @@ function handleGetRecordingsV2() {
 
       for (const chunk of meetingsChunks) {
         const chunkPromises = chunk.map(meeting => 
-          getRecordingV2(meeting.friendly_id!).then(records => ({
+          getRecordingV2(meeting.friendly_id!).then(({records, transcriptions}) => ({
             meetingID: meeting.friendly_id!,
             recordings: records,
+            transcriptions: transcriptions,
           }))
+
         );
         const chunkResults = await Promise.all(chunkPromises);
         meetingsList.push(...chunkResults);
@@ -657,8 +659,29 @@ async function getRecordingV2(meetingID: string){
     const call = client.video.call('default', meetingID);
   
     const recordings = await call.listRecordings();
+    const transcription = await call.listTranscriptions();
 
-    return recordings?.recordings ?? [];
+    return {
+      recordings: recordings?.recordings ?? [],
+      transcriptions: transcription?.transcriptions ?? [],
+    };
+  } catch(error){
+    console.error(error);
+    return [];
+  }
+}
+
+async function getTranscription(meetingID: string){
+  if(!meetingID) return [];
+  const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY!;
+  const client = new StreamClient(apiKey, process.env.STREAM_SECRET_KEY!);
+
+  try{
+    const call = client.video.call('default', meetingID);
+  
+    const transcription = await call.listTranscriptions();
+
+    return transcription?.transcriptions ?? [];
   } catch(error){
     console.error(error);
     return [];
