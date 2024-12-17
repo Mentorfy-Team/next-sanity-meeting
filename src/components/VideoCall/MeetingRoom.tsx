@@ -1,5 +1,5 @@
 import type React from "react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	CallingState,
 	useCallStateHooks,
@@ -36,6 +36,8 @@ import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { VideoEffectsSettings } from "./VideoEffects";
 import { usePersistedVideoFilter } from "@/hooks/usePersistedVideoFilter";
 import { TranscriptionButton } from "./TranscriptionButton";
+import { useUserStore } from "@/hooks/userStore";
+import { useToggleCallRecording } from "@stream-io/video-react-sdk/dist/src/hooks";
 
 interface MeetingRoomProps {
 	name: string;
@@ -61,13 +63,16 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 	const [showChat, setShowChat] = useState(false);
 	const isMobile = useMediaQuery("(max-width: 700px)");
 
-	const { useCallCallingState, useScreenShareState } = useCallStateHooks();
+	const { useCallCallingState, useIsCallRecordingInProgress } = useCallStateHooks();
+	const { toggleCallRecording } = useToggleCallRecording();
 	const callingState = useCallCallingState();
-
+	const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const { useParticipants } = useCallStateHooks();
   const allParticipants = useParticipants();
   usePersistedVideoFilter('video-filter');
-  
+
+  const { room } = useUserStore();
+
   const participantWithScreenShare = useMemo(() => allParticipants.find(participant => participant.screenShareStream?.active), [allParticipants]);
 
 	const CallLayout = useCallback(() => {
@@ -127,6 +132,12 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 		}
 	};
 
+	useEffect(() => {
+		if (room?.configs?.autoStartRecording && !isCallRecordingInProgress) {
+			toggleCallRecording();
+		}
+	}, [room, isCallRecordingInProgress, toggleCallRecording]);
+
 	return (
 		<section className="relative h-screen w-full overflow-hidden text-white">
 			<div className="relative flex w-[100dvw] h-[inherit] items-center justify-center">
@@ -179,6 +190,7 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 					<CallControls
 						isModerator={isModerator}
 						onLeave={() => window.close()}
+						recordCallEnabled={room?.configs?.recordCall}
 					/>
 					
 					{!isModerator && (
@@ -242,7 +254,8 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 const CallControls = ({
 	onLeave,
 	isModerator,
-}: CallControlsProps & { isModerator: boolean }) => (
+	recordCallEnabled,
+}: CallControlsProps & { isModerator: boolean, recordCallEnabled: boolean }) => (
 	<>
 		<ReactionsButton />
 		<SpeakingWhileMutedNotification>

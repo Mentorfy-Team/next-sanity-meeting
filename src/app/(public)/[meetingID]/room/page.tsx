@@ -56,7 +56,7 @@ export default function VideoCallPage({ params: { meetingID } }: { params: { mee
         {!isSetupComplete ? (
             <MeetingSetup setIsSetupComplete={setIsSetupComplete} />
           ) : (
-            <MeetingRoom name={userName} token={token} apiKey={apiKey} meetingId={meetingId} isModerator={isModerator} id={userId} />
+            <MeetingRoom name={userName} token={token} apiKey={apiKey} meetingId={meetingId} isModerator={isModerator} id={userId}/>
           )}
         </BackgroundFiltersProvider>
       </StreamCall>

@@ -32,7 +32,7 @@ export default function Project({ params: { meetingID } }: Props) {
   const { data: room, isLoading } = trpc.meeting.getRoom.useQuery({ meetingID });
   const { data: userFromQuery } = trpc.meeting.getSession.useQuery({ ref });
 
-  const { name: userName, setName, setMeetingId, setIsModerator } = useUserStore();
+  const { name: userName, setName, setMeetingId, setIsModerator, setRoom } = useUserStore();
 
   const loadUser = useCallback(async () => {
     if (userFromQuery?.first_name) {
@@ -45,11 +45,14 @@ export default function Project({ params: { meetingID } }: Props) {
   }, [loadUser]);
 
   useEffect(() => {
-    if (isModerator) {
+    if (isModerator || room?.configs?.guestAsModerator) {
       setIsModerator(true);
     }
     if (meetingID) {
       setMeetingId(meetingID);
+    }
+    if (room) {
+      setRoom(room);
     }
   }, [isModerator, room, meetingID]);
 
