@@ -44,7 +44,6 @@ import { VideoEffectsSettings } from "./VideoEffects";
 import { usePersistedVideoFilter } from "@/hooks/usePersistedVideoFilter";
 import { TranscriptionButton } from "./TranscriptionButton";
 import { useUserStore } from "@/hooks/userStore";
-import { useToggleCallRecording } from "@stream-io/video-react-sdk/dist/src/hooks";
 
 interface MeetingRoomProps {
 	name: string;
@@ -74,7 +73,6 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 		useCallStateHooks();
 	const callingState = useCallCallingState();
 
-	const { toggleCallRecording } = useToggleCallRecording();
 	const isCallRecordingInProgress = useIsCallRecordingInProgress();
 
 	const { useParticipants } = useCallStateHooks();
@@ -155,10 +153,12 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 	useEffect(() => {
 		console.log("isCallRecordingInProgress", isCallRecordingInProgress, initialLoadingRecording, room?.configs?.autoStartRecording);
 		if (room?.configs?.autoStartRecording && !isCallRecordingInProgress && !initialLoadingRecording) {
-			toggleCallRecording();
+			call?.startRecording().catch((err) => {
+				console.error("Failed to start recording", err);
+			});
 			setInitialLoadingRecording(true);
 		}
-	}, [room, isCallRecordingInProgress, toggleCallRecording, initialLoadingRecording]);
+	}, [room, isCallRecordingInProgress, call, initialLoadingRecording]);
 
 
 	useEffect(() => {
