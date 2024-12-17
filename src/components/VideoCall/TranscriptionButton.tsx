@@ -28,6 +28,9 @@ export const TranscriptionButton = () => {
     <button
       onClick={toggleTranscription}
       className={`control-button ${isTranscribing ? "bg-primary/75" : ""}`}
+      style={{
+        backgroundColor: isTranscribing ? "#dc433b" : "unset",
+      }}
       title={isTranscribing ? "Parar Transcrição" : "Iniciar Transcrição"}
       type="button"
     >
