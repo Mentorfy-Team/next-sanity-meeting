@@ -132,21 +132,6 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 		}
 	}, [layout]);
 
-	if (callingState !== CallingState.JOINED) return <Loader />;
-
-	const toggleParticipants = () => {
-		setShowParticipants((prev) => !prev);
-		if (!showParticipants) {
-			setShowChat(false);
-		}
-	};
-
-	const toggleChat = () => {
-		setShowChat((prev) => !prev);
-		if (!showChat) {
-			setShowParticipants(false);
-		}
-	};
 	const [initialLoadingRecording, setInitialLoadingRecording] = useState(false);
 	const [initialLoadingTranscribing, setInitialLoadingTranscribing] = useState(false);
 
@@ -170,6 +155,22 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 			setInitialLoadingTranscribing(true);
 		}
 	}, [room, isTranscribing, call, initialLoadingTranscribing]);
+	
+	if (callingState !== CallingState.JOINED) return <Loader />;
+
+	const toggleParticipants = () => {
+		setShowParticipants((prev) => !prev);
+		if (!showParticipants) {
+			setShowChat(false);
+		}
+	};
+
+	const toggleChat = () => {
+		setShowChat((prev) => !prev);
+		if (!showChat) {
+			setShowParticipants(false);
+		}
+	};
 
 	return (
 		<section className="relative h-screen w-full overflow-hidden text-white">
