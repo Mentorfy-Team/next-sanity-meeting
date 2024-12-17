@@ -16,6 +16,7 @@ import {
 	ScreenShareButton,
 	ParticipantView,
 	SpeakerLayout,
+	useCall,
 } from "@stream-io/video-react-sdk";
 import Loader from "./Loader";
 import { cn } from "@/lib/utils";
@@ -25,7 +26,13 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { LayoutList, Users, MessageSquare, MoreHorizontal, Image } from "lucide-react";
+import {
+	LayoutList,
+	Users,
+	MessageSquare,
+	MoreHorizontal,
+	Image,
+} from "lucide-react";
 import EndCallButton from "./EndCallButton";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import "stream-chat-react/dist/css/v2/index.css";
@@ -63,24 +70,35 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 	const [showChat, setShowChat] = useState(false);
 	const isMobile = useMediaQuery("(max-width: 700px)");
 
-	const { useCallCallingState, useIsCallRecordingInProgress } = useCallStateHooks();
-	const { toggleCallRecording } = useToggleCallRecording();
+	const { useCallCallingState, useIsCallRecordingInProgress, useIsCallTranscribingInProgress } =
+		useCallStateHooks();
 	const callingState = useCallCallingState();
+
+	const { toggleCallRecording } = useToggleCallRecording();
 	const isCallRecordingInProgress = useIsCallRecordingInProgress();
-  const { useParticipants } = useCallStateHooks();
-  const allParticipants = useParticipants();
-  usePersistedVideoFilter('video-filter');
 
-  const { room } = useUserStore();
+	const { useParticipants } = useCallStateHooks();
+	const allParticipants = useParticipants();
+	const isTranscribing = useIsCallTranscribingInProgress();
 
-  const participantWithScreenShare = useMemo(() => allParticipants.find(participant => participant.screenShareStream?.active), [allParticipants]);
+	const call = useCall();
+
+	usePersistedVideoFilter("video-filter");
+
+	const { room } = useUserStore();
+
+	const participantWithScreenShare = useMemo(
+		() =>
+			allParticipants.find(
+				(participant) => participant.screenShareStream?.active,
+			),
+		[allParticipants],
+	);
 
 	const CallLayout = useCallback(() => {
 		switch (layout) {
 			case "grid":
-				return <PaginatedGridLayout 
-          pageArrowsVisible
-        />;
+				return <PaginatedGridLayout pageArrowsVisible />;
 			case "speaker-right":
 				return (
 					<SpeakerLayout
@@ -131,30 +149,56 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 			setShowParticipants(false);
 		}
 	};
+	const [initialLoadingRecording, setInitialLoadingRecording] = useState(false);
+	const [initialLoadingTranscribing, setInitialLoadingTranscribing] = useState(false);
 
 	useEffect(() => {
-		if (room?.configs?.autoStartRecording && !isCallRecordingInProgress) {
+		if (room?.configs?.autoStartRecording && !isCallRecordingInProgress && !initialLoadingRecording) {
 			toggleCallRecording();
+			setInitialLoadingRecording(true);
 		}
-	}, [room, isCallRecordingInProgress, toggleCallRecording]);
+	}, [room, isCallRecordingInProgress, toggleCallRecording, initialLoadingRecording]);
+
+
+	useEffect(() => {
+		if (room?.configs?.autoTranscribe && !isTranscribing && !initialLoadingTranscribing) {
+			call?.startTranscription().catch((err) => {
+				console.error("Failed to start transcription", err);
+			});
+			setInitialLoadingTranscribing(true);
+		}
+	}, [room, isTranscribing, call, initialLoadingTranscribing]);
 
 	return (
 		<section className="relative h-screen w-full overflow-hidden text-white">
 			<div className="relative flex w-[100dvw] h-[inherit] items-center justify-center">
 				<div
-					className={cn("flex size-full items-center justify-center ml-2 flex-col gap-2", {
-						"ml-0": !showChat && !showParticipants,
-            "size-fit": layout === 'grid' && participantWithScreenShare?.screenShareStream?.active
-					})}
-				>
-					{(layout === 'grid' && participantWithScreenShare?.screenShareStream?.active) && (
-						<div className="flex items-center justify-center w-full lg:w-2/3">
-							<ParticipantView participant={participantWithScreenShare} trackType="screenShareTrack" />
-						</div>
+					className={cn(
+						"flex size-full items-center justify-center ml-2 flex-col gap-2",
+						{
+							"ml-0": !showChat && !showParticipants,
+							"size-fit":
+								layout === "grid" &&
+								participantWithScreenShare?.screenShareStream?.active,
+						},
 					)}
-					<div className={cn("relative w-full h-full content-center", {
-						"lg:w-2/3": layout === 'grid' && participantWithScreenShare?.screenShareStream?.active
-					})}>
+				>
+					{layout === "grid" &&
+						participantWithScreenShare?.screenShareStream?.active && (
+							<div className="flex items-center justify-center w-full lg:w-2/3">
+								<ParticipantView
+									participant={participantWithScreenShare}
+									trackType="screenShareTrack"
+								/>
+							</div>
+						)}
+					<div
+						className={cn("relative w-full h-full content-center", {
+							"lg:w-2/3":
+								layout === "grid" &&
+								participantWithScreenShare?.screenShareStream?.active,
+						})}
+					>
 						<CallLayout />
 					</div>
 				</div>
@@ -192,13 +236,17 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 						onLeave={() => window.close()}
 						recordCallEnabled={room?.configs?.recordCall}
 					/>
-					
+
 					{!isModerator && (
-						<button type="button" onClick={toggleChat} className="control-button">
+						<button
+							type="button"
+							onClick={toggleChat}
+							className="control-button"
+						>
 							<MessageSquare size={20} />
 						</button>
 					)}
-					
+
 					{isModerator && (
 						<>
 							<DropdownMenu>
@@ -219,22 +267,22 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
-							
+
 							<CallStatsButton />
 						</>
 					)}
-					
+
 					<DropdownMenu>
 						<DropdownMenuTrigger className="control-button">
 							<LayoutList size={20} />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent className="border-dark-1 bg-neutral-900 text-white">
 							{Object.entries({
-								'grid': 'Grade',
-								'speaker-left': 'Palestrante à Esquerda',
-								'speaker-right': 'Palestrante à Direita',
-								'speaker-top': 'Palestrante em Cima',
-								'speaker-bottom': 'Palestrante em Baixo'
+								grid: "Grade",
+								"speaker-left": "Palestrante à Esquerda",
+								"speaker-right": "Palestrante à Direita",
+								"speaker-top": "Palestrante em Cima",
+								"speaker-bottom": "Palestrante em Baixo",
 							}).map(([key, value]) => (
 								<DropdownMenuItem
 									key={key}
@@ -255,17 +303,20 @@ const CallControls = ({
 	onLeave,
 	isModerator,
 	recordCallEnabled,
-}: CallControlsProps & { isModerator: boolean, recordCallEnabled: boolean }) => (
+}: CallControlsProps & {
+	isModerator: boolean;
+	recordCallEnabled: boolean;
+}) => (
 	<>
 		<ReactionsButton />
 		<SpeakingWhileMutedNotification>
 			<ToggleAudioPublishingButton />
 		</SpeakingWhileMutedNotification>
 		{isModerator && (
-		<>
-			<RecordCallButton />
-			<TranscriptionButton />
-		</>
+			<>
+				<RecordCallButton />
+				<TranscriptionButton />
+			</>
 		)}
 		<ToggleVideoPublishingButton />
 		<ScreenShareButton />
@@ -278,7 +329,11 @@ export const VideoEffectsButton = () => {
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
-				<button className="bg-[#19232d] w-9 h-9 rounded-full items-center justify-center hover:bg-[#323b44] flex" type="button" title="Efeitos de Vídeo">
+				<button
+					className="bg-[#19232d] w-9 h-9 rounded-full items-center justify-center hover:bg-[#323b44] flex"
+					type="button"
+					title="Efeitos de Vídeo"
+				>
 					<Image size={18} />
 				</button>
 			</DialogTrigger>
