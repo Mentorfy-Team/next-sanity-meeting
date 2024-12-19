@@ -296,9 +296,9 @@ function handleGetRecordingsV2() {
 
       for (const chunk of meetingsChunks) {
         const chunkPromises = chunk.map(meeting => 
-          getRecordingV2(meeting.friendly_id!).then(({records, transcriptions}) => ({
+          getRecordingV2(meeting.friendly_id!).then(({recordings, transcriptions}) => ({
             meetingID: meeting.friendly_id!,
-            recordings: records,
+            recordings: recordings,
             transcriptions: transcriptions,
           }))
 
