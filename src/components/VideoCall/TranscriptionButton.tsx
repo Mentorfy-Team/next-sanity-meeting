@@ -1,23 +1,33 @@
-import { useCall } from "@stream-io/video-react-sdk";
+import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
 import { FileText } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const TranscriptionButton = () => {
-  const [isTranscribing, setIsTranscribing] = useState(false);
+  const { useCallCallingState, useIsCallRecordingInProgress, useIsCallTranscribingInProgress } =
+		useCallStateHooks();
+    const isTranscribing = useIsCallTranscribingInProgress();
   const call = useCall();
 
   if (!call) return null;
+
+  useEffect(() => {
+    console.log("isTranscribing", isTranscribing);
+  }, [isTranscribing]);
 
   const toggleTranscription = async () => {
     try {
       if (isTranscribing) {
         await call.stopTranscription();
-        setIsTranscribing(false);
       } else {
-        await call.startTranscription({
-          
-        });
-        setIsTranscribing(true);
+        await call.update({
+          settings_override:{
+            transcription: {
+              mode: "available",
+              languages: ["pt"]
+            }
+          }
+        })
+        await call.startTranscription();
       }
     } catch (error) {
       console.error("Erro ao gerenciar transcrição:", error);

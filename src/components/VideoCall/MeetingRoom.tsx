@@ -136,7 +136,6 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 	const [initialLoadingTranscribing, setInitialLoadingTranscribing] = useState(false);
 
 	useEffect(() => {
-		console.log("isCallRecordingInProgress", isCallRecordingInProgress, initialLoadingRecording, room?.configs?.autoStartRecording);
 		if (room?.configs?.autoStartRecording && !isCallRecordingInProgress && !initialLoadingRecording) {
 			call?.startRecording().catch((err) => {
 				console.error("Failed to start recording", err);
@@ -147,7 +146,6 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 
 
 	useEffect(() => {
-		console.log("isTranscribing", isTranscribing, initialLoadingTranscribing, room?.configs?.autoTranscribe);
 		if (room?.configs?.autoTranscribe && !isTranscribing && !initialLoadingTranscribing) {
 			call?.startTranscription().catch((err) => {
 				console.error("Failed to start transcription", err);
