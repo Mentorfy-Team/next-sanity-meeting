@@ -33,6 +33,17 @@ const MeetingSetup = ({
     isCameraEnabled ? call.camera.enable() : call.camera.disable();
   }, [isCameraEnabled, call.camera]);
 
+  useEffect(() => {
+    call.update({
+      settings_override:{
+        transcription: {
+          mode: "available",
+          languages: ["pt"]
+        }
+      }
+    })
+  }, [call]);
+
   const toggleMic = () => setIsMicEnabled(prev => !prev);
   const toggleCamera = () => setIsCameraEnabled(prev => !prev);
 

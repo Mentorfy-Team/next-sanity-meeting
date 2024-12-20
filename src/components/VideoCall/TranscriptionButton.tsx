@@ -19,14 +19,6 @@ export const TranscriptionButton = () => {
       if (isTranscribing) {
         await call.stopTranscription();
       } else {
-        await call.update({
-          settings_override:{
-            transcription: {
-              mode: "available",
-              languages: ["pt"]
-            }
-          }
-        })
         await call.startTranscription();
       }
     } catch (error) {
