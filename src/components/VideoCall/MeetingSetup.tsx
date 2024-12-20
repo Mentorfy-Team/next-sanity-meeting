@@ -33,17 +33,6 @@ const MeetingSetup = ({
     isCameraEnabled ? call.camera.enable() : call.camera.disable();
   }, [isCameraEnabled, call.camera]);
 
-  useEffect(() => {
-    call.update({
-      settings_override:{
-        transcription: {
-          mode: "available",
-          languages: ["pt"]
-        }
-      }
-    })
-  }, [call]);
-
   const toggleMic = () => setIsMicEnabled(prev => !prev);
   const toggleCamera = () => setIsCameraEnabled(prev => !prev);
 
@@ -81,7 +70,16 @@ const MeetingSetup = ({
         onClick={async () => {
           try {
             setIsJoining(true);
-            await call.getOrCreate();
+            await call.getOrCreate({
+              data: {
+                settings_override: {
+                  transcription: {
+                    mode: "available",
+                    languages: ["pt"],
+                  },
+                },
+              },
+            });
             call.join();
             setIsSetupComplete(true);
           } catch (error) {
