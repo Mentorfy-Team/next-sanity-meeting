@@ -76,6 +76,7 @@ const MeetingSetup = ({
                   transcription: {
                     mode: "available",
                     languages: ["pt"],
+                    closed_caption_mode: "available",
                   },
                 },
               },
