@@ -12,6 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import HttpBackendClient from "@/utils/server"
+import { toast } from "@/components/ui/use-toast"
 
 type Props = {
   params: {
@@ -29,6 +31,7 @@ export default function Project({ params: { meetingID } }: Props) {
   
   const [isLoading, setIsLoading] = useState(true);
   const [room, setRoom] = useState<any>(null);
+  const [joinError, setJoinError] = useState(false);
 
   const { name: userName, setName, setMeetingId, setIsModerator, setRoom: setStoreRoom } = useUserStore();
 
@@ -78,12 +81,35 @@ export default function Project({ params: { meetingID } }: Props) {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setJoinError(false);
     setName(values.name);
     if (values.password) {
       // Implementar verificação de senha se necessário
       setIsModerator(true);
     }
-    route.push(`/${meetingID}/room`);
+    
+    try {
+      const response = await HttpBackendClient.get(`/live/join?meetingId=${meetingID}&userName=${values.name}&role=moderator&password=mp`);
+      if(response.data.joinUrl) {
+        window.location.href = response.data.joinUrl;
+      } else {
+        setJoinError(true);
+        toast({
+          title: 'Erro ao entrar na reunião',
+          description: response.data.message,
+        });
+        // Força reset do estado de submissão
+        form.reset(values);
+      }
+    } catch (error) {
+      setJoinError(true);
+      toast({
+        title: 'Erro ao entrar na reunião',
+        description: error instanceof Error ? error.message : 'Ocorreu um erro inesperado',
+      });
+      // Força reset do estado de submissão
+      form.reset(values);
+    }
   }
 
   const RoomEnableToJoin = () => {
@@ -99,17 +125,20 @@ export default function Project({ params: { meetingID } }: Props) {
       const appointmentDate = new Date(room?.appointment_date);
       if (RoomEnableToJoin()) {
         return 'A reunião já começou';
-      } else {
-        return <p>A reunião começa em<p className="text-primary-500 font-bold">{appointmentDate.toLocaleDateString()} às {appointmentDate.toLocaleTimeString()}</p></p>;
       }
+      return <p>A reunião começa em<p className="text-primary-500 font-bold">{appointmentDate.toLocaleDateString()} às {appointmentDate.toLocaleTimeString()}</p></p>;
     }
   };
 
-  const ButtonSubmit = useCallback(({ children }: any) => {
+  const ButtonSubmit = useCallback(({ children }: React.PropsWithChildren<unknown>) => {
     return <Button type="submit"
       disabled={form.formState.isSubmitting || form.getValues('name') === ''}
-    >{children}</Button>
-  }, [form.formState.isSubmitting, form.getValues]);
+    >{form.formState.isSubmitting ? 
+        <Icons.spinner className="mr-2 h-4 w-4 animate-spin" /> : 
+        null}
+      {joinError ? "Tentar novamente" : children}
+    </Button>
+  }, [form.formState.isSubmitting, form.getValues, joinError]);
 
   return <div className="h-full flex items-center justify-center">
     <div className="flex flex-col items-center justify-center bg-gray-750 rounded-lg p-4">
@@ -118,7 +147,7 @@ export default function Project({ params: { meetingID } }: Props) {
           {isLoading && (
             <Icons.spinner className="animate-spin w-12 h-12 text-primary-500 mx-auto" />
           )}
-          {!isLoading && <>
+          {!isLoading &&
             <div className="flex flex-col w-[300px] gap-4 justify-center">
               <div className="mb-6">
                 <h2 className="text-3xl mb-2 text-center">{room?.room_name || 'Sala de Reunião'}</h2>
@@ -141,7 +170,7 @@ export default function Project({ params: { meetingID } }: Props) {
                       </FormItem>
                     )} />
                   <div className="flex gap-4">
-                    <Checkbox id="use-password" checked={usePassword} onCheckedChange={(e) => setUsePassword(e as any)} />
+                    <Checkbox id="use-password" checked={usePassword} onCheckedChange={(e) => setUsePassword(Boolean(e))} />
                     <Label htmlFor="use-password">Usar senha de acesso</Label>
                   </div>
                   {usePassword && <FormField
@@ -160,8 +189,7 @@ export default function Project({ params: { meetingID } }: Props) {
                   <ButtonSubmit>Entrar</ButtonSubmit>
                 </form>
               </Form>
-            </div>
-          </>}
+            </div>}
         </div>
       </div>
     </div>
