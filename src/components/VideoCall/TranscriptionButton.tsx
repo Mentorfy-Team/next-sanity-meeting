@@ -10,10 +10,6 @@ export const TranscriptionButton = () => {
 
   if (!call) return null;
 
-  useEffect(() => {
-    console.log("isTranscribing", isTranscribing);
-  }, [isTranscribing]);
-
   const toggleTranscription = async () => {
     try {
       if (isTranscribing) {
