@@ -28,7 +28,10 @@ export default function Project({ params: { meetingID } }: Props) {
   const searchParams = useSearchParams();
   const ref = searchParams?.get('ref') || '';
   const isModerator = searchParams?.get('moderator') === 'true';
+  const role = searchParams?.get('role') || 'moderator';
+  const pass = searchParams?.get('pass') || 'mp';
   
+
   const [isLoading, setIsLoading] = useState(true);
   const [room, setRoom] = useState<any>(null);
   const [joinError, setJoinError] = useState(false);
@@ -89,7 +92,7 @@ export default function Project({ params: { meetingID } }: Props) {
     }
     
     try {
-      const response = await HttpBackendClient.get(`/live/join?meetingId=${meetingID}&userName=${values.name}&role=moderator&password=mp`);
+      const response = await HttpBackendClient.get(`/live/join?meetingId=${meetingID}&userName=${values.name}&role=${role ?? 'moderator'}&password=${pass ?? 'mp'}`);
       if(response.data.joinUrl) {
         window.location.href = response.data.joinUrl;
       } else {
