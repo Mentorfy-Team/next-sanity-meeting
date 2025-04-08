@@ -79,13 +79,25 @@ export default function Project({ params: { meetingID } }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: userName,
+      name: userName || '',
     },
   })
+
+  useEffect(() => {
+    // Carrega o nome do localStorage quando o componente monta
+    const savedName = localStorage.getItem('userName');
+    if (savedName && !userName) {
+      setName(savedName);
+      form.setValue('name', savedName);
+    }
+  }, [setName, form, userName]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setJoinError(false);
     setName(values.name);
+    // Salva o nome no localStorage
+    localStorage.setItem('userName', values.name);
+    
     if (values.password) {
       // Implementar verificação de senha se necessário
       setIsModerator(true);
